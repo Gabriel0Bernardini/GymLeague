@@ -1,0 +1,97 @@
+body {  
+      background-image: url('../Assets/background.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+}
+
+::placeholder {
+  opacity: 0.02;
+  color: #3d3d3d;   
+  font-style: italic;
+}
+
+.cadastro-container {
+      margin-top: 3rem;
+      background-color: #bdbdbd;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+}
+
+.form-title {
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      color: #e5e7eb;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #3b82f6;
+}
+
+.btn.btn-success.btn-cadastro.position-relative {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background-color: #3b82f6;   
+    color: #fff;               
+    border: 1px solid #3b82f6;
+}
+
+.logo-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+/*logica para quando clicar no botao de cadastro ele voltar a ser o azul*/
+.btn-cadastro:focus,
+.btn-cadastro:active,
+.btn-cadastro:focus:active {
+    background-color: #3b82f6 !important;
+    color: #fff !important;
+    border-color: #3b82f6 !important;
+}
+
+.cadastro-text, .cadastro-icon {
+    display: inline-block;
+    transition: opacity 0.3s ease-out, transform 0.3s ease;
+}
+
+.cadastro-icon {
+    opacity: 0;
+    transform: translateY(10px);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-250%, -50%) scale(0.9);
+    font-size: 1.2rem;
+}
+
+.btn-cadastro:hover {
+    background-color: #fff;      
+    color: #3b82f6;              
+    border: 1px solid #3b82f6;    
+}
+
+
+.btn-cadastro:hover .cadastro-icon {
+    opacity: 1;
+    transform:  translate(-100%, -50%) scale(1.8);
+}
+
+.btn-cadastro:hover .cadastro-text {
+    opacity: 0;
+    transform: translateY(20px);
+}
