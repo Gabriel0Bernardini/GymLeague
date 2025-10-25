@@ -1,0 +1,75 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Pacotes do template ---
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
+\usepackage[lmargin=3cm,tmargin=3cm,rmargin=2cm,bmargin=2cm]{geometry}
+\usepackage[onehalfspacing]{setspace}
+\usepackage[brazil]{babel}
+\usepackage{verbatim}
+\usepackage[bf]{caption}
+\usepackage[portuguese, ruled, linesnumbered]{algorithm2e}
+\usepackage{amssymb,amsmath,amsfonts}
+\usepackage{pgfplots}
+\usepackage{algpseudocode}
+\usepackage{indentfirst}
+\usepackage{hyperref}
+\usepackage{gensymb}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[brazilian,alf]{abntex2cite}
+\usepackage{url}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=true
+}
+
+\begin{document}
+
+% --- CAPA ---
+\begin{titlepage}
+    \vfill
+\begin{center}
+    \includegraphics[scale=0.3]{imgs/UFSJ_Logo.png}\\
+    \textbf{UNIVERSIDADE FEDERAL DE SÃO JOÃO DEL REI}\\
+    \vspace{0.15cm}
+    {\fontsize{14}{0} \selectfont Departamento de Ciência da Computação}\\
+    \vspace{0.6cm}
+    \vspace{3cm}
+
+    {\huge \textbf{Gym Progress — Documentação do Projeto de Engenharia de Software}\vspace{3cm}}
+
+    {\large \textbf{Felipe Girardi Siqueira — 2023008120}}\\[0.3cm]
+    {\large \textbf{[...] — [202300XXXX]}}\\[0.8cm]
+
+    \hspace{.45\textwidth}
+    \begin{minipage}{.5\textwidth}
+        Documento referente ao desenvolvimento do projeto da disciplina de Engenharia de Software, com o objetivo de construir uma plataforma para acompanhamento de desempenho e progressão em atividades físicas, utilizando tecnologias modernas de desenvolvimento web.\\[0.1cm]
+    \end{minipage}
+
+    \vfill
+    \textbf{São João Del Rei}\\
+    \textbf{Outubro de 2025}
+\end{center}
+\end{titlepage}
+
+% --- SUMÁRIO ---
+\newpage 
+\setcounter{secnumdepth}{5}
+\tableofcontents
+\newpage
+
+% --- CAPÍTULOS ---
+\include{chapters/introduction}
+\include{chapters/tecnologies}
+
+% --- REFERÊNCIAS ---
+\bibliographystyle{abntex2-alf} 
+\bibliography{referencias}
+
+\end{document}
