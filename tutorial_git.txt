@@ -1,1 +1,61 @@
-.
+Guia prático: Como criar e trabalhar com branches no Git (modelo Git Flow)
+
+1. Garantir que está na branch principal (main)
+   git checkout main
+   git pull
+
+   Isso garante que você está com o código mais atualizado antes de criar uma nova branch.
+
+#-----------------------------------------------------------------------------------------------------#
+
+2. Criar uma nova branch para sua tarefa
+   - Use o formato: feature/[código-da-tarefa]-[descrição-curta]
+   - Exemplo:
+     git checkout -b feature/KAN-56-calculo-taxas
+     (ou, se for um bug)
+     git checkout -b bugfix/KAN-107-corrige-calculo
+
+#-----------------------------------------------------------------------------------------------------#
+
+3. Fazer as alterações necessárias no código
+   - Edite, adicione ou remova arquivos conforme a tarefa.
+
+#-----------------------------------------------------------------------------------------------------#
+
+4. Adicionar os arquivos modificados ao commit
+   - Faça pelo Source Control.
+
+#-----------------------------------------------------------------------------------------------------#
+
+5. Criar o commit com mensagem padronizada
+   - Formato: “[Código da Tarefa]: [Mensagem clara e objetiva]”
+   - Exemplo:
+      "KAN-107: Adiciona funcionalidade de cálculo de taxas"
+      "KAN-56: Corrige bug no cálculo de taxas"
+
+#-----------------------------------------------------------------------------------------------------#
+
+6. Enviar a branch para o repositório remoto
+   git push origin feature/KAN-56-calculo-taxas
+
+#-----------------------------------------------------------------------------------------------------#
+
+7. Criar o Pull Request (PR)
+   - No GitHub/GitLab/Bitbucket, abra um PR da sua branch para a main.
+   - Descreva o que foi feito, por exemplo:
+     “Este PR adiciona o cálculo de taxas na tela de checkout, referente à tarefa KAN-56. 
+      Inclui testes unitários.”
+
+#-----------------------------------------------------------------------------------------------------#
+
+8. Revisão de código
+   - Outro membro do grupo deve revisar o PR antes de fazer o merge.
+   - Após aprovação, o PR é mesclado (merge) na branch main.
+
+#-----------------------------------------------------------------------------------------------------#
+
+9. Atualizar o repositório local após o merge
+   git checkout main
+   git pull
+
+#-----------------------------------------------------------------------------------------------------#
