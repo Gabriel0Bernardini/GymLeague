@@ -1,4 +1,4 @@
-import { GiGymBag } from "react-icons/gi";
+import { FaUser } from "react-icons/fa";
 import { useState } from "react";
 import Input from "../Components/ui/Input";
 import Button from "../Components/ui/Button";
@@ -71,8 +71,8 @@ export default function Perfil() {
       <div className="max-w-xl bg-gray-100 shadow-md rounded px-8 pt-6 pb-8 mb-2">
         <div className="bg-sky-500 shadow-md rounded px-8 pt-6 pb-8">
           <div className="flex items-center justify-center gap-10">
-            <span className="text-white text-5xl font-mono">GymLeague</span>
-            <GiGymBag className="text-white h-20 w-20"/>
+            <span className="text-white text-5xl font-mono"> Perfil </span>
+            <FaUser className="text-white h-20 w-20"/>
           </div>
         </div>
         <form onSubmit={handleSubmit} noValidate className="bg-white shadow-md rounded px-8 pt-6 pb-4">
@@ -138,7 +138,6 @@ export default function Perfil() {
             />
             {confirmPassError && <p className="text-red-500 text-xs italic -mt-3 mb-2">{confirmPassError}</p>}
           </div>
-          {!isPasswordFocused && <p className="opacity-60 italic block">Ja tem uma conta? <a className="text-sky-500 hover:underline opacity-100" href="/login">Login</a></p>}
           <Button
             type="submit"
             disabled={isLoading}
