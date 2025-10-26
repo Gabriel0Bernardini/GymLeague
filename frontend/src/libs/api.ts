@@ -41,7 +41,9 @@ async function request<T>(
   // se não deu certo (status 4xx / 5xx), lança erro com info extra
   if (!res.ok) {
     const err = new Error((data && data.message) || `HTTP ${res.status}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (err as any).status = res.status;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (err as any).body = data;
     throw err;
   }
@@ -63,7 +65,7 @@ export const api = {
       }),
 
     me: () =>
-      request<{ id: string; username: string; name: string }>("/auth/me", {
+      request<{ email: string; pNome: string }>("/auth/me", {
         auth: true,
       }),
   },

@@ -2,17 +2,16 @@
 
 // req -> o que o front envia no POST /auth/login
 export type LoginRequestDTO = {
-  username: string;
-  password: string;
+  email: string;
+  senha: string;
 };
 
 // res -> o que o back devolve se der certo
 export type LoginResponseDTO = {
   token: string;
   user: {
-    id: string;
-    username: string;
-    name: string;
+    email: string;
+    pNome: string;
   };
 };
 

@@ -22,14 +22,14 @@ CORS(app, origins=[FRONT_ORIGIN])
 def generate_token(user_row):
     """
     Gera um JWT contendo:
-      - sub (id do usuário)
-      - username
+      - sub (email do usuário)
+      - nome do usuario
       - exp (expira em 8h)
       - iat (emitido agora)
     """
     payload = {
-        "sub": str(user_row["id"]),
-        "username": user_row["username"],
+        "sub": str(user_row["email"]),
+        "nome": str(user_row["pNome"]),
         "exp": datetime.utcnow() + timedelta(hours=8),
         "iat": datetime.utcnow(),
     }
@@ -51,15 +51,15 @@ def get_auth_user_from_header():
         token = parts[1]
         try:
             payload = decode_token(token)
-            user_id = payload.get("sub")
-            if not user_id:
+            user_email = payload.get("sub")
+            if not user_email:
                 return None
 
             conn = get_conn()
             cur = conn.cursor(dictionary=True)
             cur.execute(
-                "SELECT id, username, name FROM users WHERE id = %s",
-                (user_id,)
+                "SELECT email, pNome FROM Usuario WHERE email = %s",
+                (user_email,)
             )
             user = cur.fetchone()
             cur.close()
@@ -85,7 +85,7 @@ def login():
       { "username": "aluno", "password": "123456" }
 
     Respostas:
-      200: { "token": "...", "user": { id, username, name } }
+      200: { "token": "...", "user": { email, pNome } }
       400: { "code": "BAD_REQUEST", "message": "Corpo inválido" }
       401: { "code": "INVALID_CREDENTIALS", "message": "Usuário ou senha inválidos" }
     """
@@ -93,24 +93,24 @@ def login():
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
 
     data = request.get_json(silent=True) or {}
-    username = (data.get("username") or "").strip()
-    password = data.get("password") or ""
+    email = (data.get("email") or "").strip()
+    senha = data.get("senha") or ""
 
-    if not username or not password:
+    if not email or not senha:
         return jsonify({"code": "BAD_REQUEST", "message": "Usuário e senha obrigatórios"}), 400
 
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
     cur.execute(
-        "SELECT id, username, name, password FROM users WHERE username = %s",
-        (username,)
+        "SELECT * FROM Usuario WHERE email = %s",
+        (email,)
     )
     user = cur.fetchone()
     cur.close()
     conn.close()
 
     # Sem hash: comparação direta (apenas para testes)
-    if not user or user["password"] != password:
+    if not user or user["senha"] != senha:
         return jsonify({"code": "INVALID_CREDENTIALS", "message": "Usuário ou senha inválidos"}), 401
 
     token = generate_token(user)
@@ -118,9 +118,8 @@ def login():
     return jsonify({
         "token": token,
         "user": {
-            "id": str(user["id"]),
-            "username": user["username"],
-            "name": user["name"],
+            "email": user["email"],
+            "pNome": user["pNome"],
         }
     }), 200
 
@@ -129,7 +128,7 @@ def me():
     """
     Necessita do header: Authorization: Bearer <token>
     Respostas:
-      200: { id, username, name }
+      200: { email, pNome }
       401: { code: "UNAUTHORIZED", message: "Token inválido ou ausente" }
     """
     user = get_auth_user_from_header()
@@ -137,9 +136,8 @@ def me():
         return jsonify({"code": "UNAUTHORIZED", "message": "Token inválido ou ausente"}), 401
 
     return jsonify({
-        "id": str(user["id"]),
-        "username": user["username"],
-        "name": user["name"],
+        "email": user["email"],
+        "pNome": user["pNome"],
     }), 200
 
 # --- Execução ---

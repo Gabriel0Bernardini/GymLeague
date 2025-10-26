@@ -18,8 +18,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
     const navigate = useNavigate();
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
 
     const [isLoading, setIsLoading] = useState(false);
     const [userError, setUserError] = useState<string | null>(null);
@@ -37,17 +37,19 @@ export default function Login() {
 
         try {
             setIsLoading(true);
-            const res = await api.auth.login({ username, password });
+            const res = await api.auth.login({ email, senha });
             saveToken(res.token);
             setFeedback("Login realizado com sucesso!");
             navigate("/home");
-            } catch (err: any) {
-                if (err.status === 401 || err?.body?.code === "INVALID_CREDENTIALS") {
-                    setPassError("Usuário ou senha inválidos.");
-                } else {
-                    setFeedback("Falha ao conectar. Tente novamente.");
-                }
-            } finally {
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (err.status === 401 || err?.body?.code === "INVALID_CREDENTIALS") {
+                setPassError("Usuário ou senha inválidos.");
+            } else {
+                setFeedback("Falha ao conectar. Tente novamente.");
+            }
+        } finally {
             setIsLoading(false);
         }
     }
@@ -65,24 +67,24 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} noValidate className="space-y-3">
             <Input
-                id="username"
-                label="Usuário"
-                placeholder="Seu usuário"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                label="Email"
+                placeholder="Digite seu email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 // quando há erro, mudamos a variante para o estilo vermelho
                 variant={userError ? "error" : "default"}
             />
-            {/* mensagem de erro específica do username (opcional, pois seu Input já pode exibir) */}
+            {/* mensagem de erro específica do email (opcional, pois seu Input já pode exibir) */}
             {userError && <p className="text-red-500 text-xs italic -mt-2 mb-2">{userError}</p>}
 
             <Input
-                id="password"
+                id="senha"
                 label="Senha"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
                 variant={passError ? "error" : "default"}
             />
             {/* mensagem de erro específica da senha (opcional) */}
