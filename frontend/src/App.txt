@@ -1,0 +1,7 @@
+// import Login_teste from "./pages/Login_front_isolated";
+
+// export default function App() {
+//   return <Login_teste />;
+// }
+
+build pra teste de tela login
