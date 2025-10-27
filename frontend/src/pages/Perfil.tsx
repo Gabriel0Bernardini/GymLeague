@@ -1,8 +1,8 @@
 import { FaUser } from "react-icons/fa";
 import { useState } from "react";
-import Input from "../Components/ui/Input";
-import Button from "../Components/ui/Button";
-import ValidadorSenha from "../Components/ui/ValidadorSenha";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import ValidadorSenha from "../components/ui/ValidadorSenha";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Perfil() {

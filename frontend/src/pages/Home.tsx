@@ -1,4 +1,3 @@
-
 import { FaUser } from "react-icons/fa";
 
 
@@ -12,6 +11,5 @@ export default function Home() {
         <h1>Bem-vindo ao GymLeague</h1>
       </div>
     </div>
-
   );
 }
