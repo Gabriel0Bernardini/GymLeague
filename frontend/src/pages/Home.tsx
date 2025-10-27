@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <div>
       <div className="p-4 bg-blue-600 text-white flex justify-end">
-        <p className="pr-3 text-xl font-serif">{user?.pNome ?? "carregando..."}</p>
+        <p className="pr-3 text-xl font-brasilic">{user?.pNome ?? "carregando..."}</p>
         <button><a href="/perfil"><FaUser className="h-6 w-6"/></a></button>
         <button onClick={handleLogout} className="pl-4 cursor-pointer"><IoLogOut className="h-6 w-6" /></button>
       </div>
