@@ -3,7 +3,7 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { api } from "../libs/api";
 import { saveToken } from "../libs/auth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // se já for usar router:
 
@@ -35,15 +35,12 @@ export default function Login() {
         setUserError(null);
         setPassError(null);
 
-        const location = useLocation();
-        const from = (location.state as any)?.from?.pathname || "/home";
-
         try {
             setIsLoading(true);
             const res = await api.auth.login({ email, senha });
             saveToken(res.token);
             setFeedback("Login realizado com sucesso!");
-            navigate(from, { replace: true });
+            navigate("/home");
         
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
