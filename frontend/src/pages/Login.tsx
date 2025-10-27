@@ -2,8 +2,9 @@ import { useState } from "react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { api } from "../libs/api";
-import { saveToken } from "../libs/auth";
+import { clearToken, saveToken } from "../libs/auth";
 import { useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 // se já for usar router:
 
@@ -20,6 +21,7 @@ export default function Login() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+    const [showSenha, setShowSenha] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [userError, setUserError] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export default function Login() {
         setPassError(null);
 
         try {
+            clearToken();
             setIsLoading(true);
             const res = await api.auth.login({ email, senha });
             saveToken(res.token);
@@ -54,51 +57,93 @@ export default function Login() {
         }
     }
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded shadow-md p-8">
-            <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-
-            {/* role="status" + aria-live ajudam leitores de tela a perceber mensagens dinâmicas */}
-            {feedback && (
-            <div role="status" aria-live="polite" className="mb-4 text-green-700 text-sm">
-                {feedback}
+        <div className="min-h-screen bg-gray-200 flex items-center justify-center px-8 pt-6 pb-8">
+          <div className="bg-white w-full max-w-md rounded shadow-md p-5">
+            <div className="bg-sky-500 shadow-md rounded px-8 pt-6 pb-8">
+              <div className="flex items-center justify-center gap-10">
+                <span className="text-white text-5xl font-bold">Login</span>
+              </div>
             </div>
-            )}
-
-            <form onSubmit={handleSubmit} noValidate className="space-y-3">
-            <Input
-                id="email"
-                label="Email"
-                placeholder="Digite seu email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                // quando há erro, mudamos a variante para o estilo vermelho
-                variant={userError ? "error" : "default"}
-            />
-            {/* mensagem de erro específica do email (opcional, pois seu Input já pode exibir) */}
-            {userError && <p className="text-red-500 text-xs italic -mt-2 mb-2">{userError}</p>}
-
-            <Input
-                id="senha"
-                label="Senha"
-                type="password"
-                placeholder="••••••••"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                variant={passError ? "error" : "default"}
-            />
-            {/* mensagem de erro específica da senha (opcional) */}
-            {passError && <p className="text-red-500 text-xs italic -mt-2 mb-2">{passError}</p>}
-
-            <Button
+    
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="rounded px-8 pt-6 pb-4"
+            >
+              <div className="mb-4">
+                <Input
+                  id="email"
+                  label="Email"
+                  placeholder="Seu Digite seu email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  // quando há erro, mudamos a variante para o estilo vermelho
+                  variant={userError ? "error" : "default"}
+                />
+                {/* mensagem de erro específica do username (opcional, pois seu Input já pode exibir) */}
+                {userError && 
+                  <p className="text-red-500 text-xs italic -mt-3 mb-2">
+                    {userError}
+                  </p>
+                }
+              </div>
+    
+              <div className="mb-4 relative">
+                <Input
+                  id="senha"
+                  label="Senha"
+                  type={showSenha ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  variant={passError ? "error" : "default"}
+                />
+                <button
+                  type="button"
+                  aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showSenha}
+                  onClick={() => setShowSenha((s) => !s)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                >
+                  {showSenha ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+                
+                {passError && (
+                  <p className="text-red-500 text-xs italic -mt-3 mb-2">
+                    {passError}
+                  </p>
+                )}
+              </div>
+              {feedback && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="my-2 text-green-700 text-1xs"
+                >
+                  {feedback}
+                </div>
+              )}
+              {!feedback && (
+                <p className="opacity-100 italic block">
+                  Não tem cadastro?{" "}
+                  <a
+                    className="text-sky-500 hover:underline scale opacity-100"
+                    href="/cadastro"
+                  >
+                    Cadastre-se
+                  </a>
+                </p>
+              )}
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full mt-2"
-            >
+                className="w-full mt-2 focus:outline-none focus:shadow-outline cursor-pointer"
+              >
                 {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
+              </Button>
             </form>
-        </div>
+          </div>
         </div>
     );
 }
