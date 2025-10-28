@@ -7,7 +7,6 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Perfil() {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);

@@ -1,36 +1,47 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import ValidadorSenha from "../components/ui/ValidadorSenha";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { api } from "../libs/api";
+import { saveToken } from "../libs/auth";
+
+type FeedbackState = {
+  message: string;
+  variant: "success" | "error";
+};
 
 export default function Cadastro() {
-  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [, setIsPasswordMatch] = useState<boolean>(false);
+  const [senha, setSenha] = useState("");
+  const [confirmSenha, setConfirmSenha] = useState("");
+
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [userError, setUserError] = useState<string | null>(null);
-  const [passError, setPassError] = useState<string | null>(null);
+  const [nomeError, setNomeError] = useState<string | null>(null);
+  const [senhaError, setSenhaError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
-  const [confirmPassError, setConfirmPassError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [confirmSenhaError, setConfirmSenhaError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFeedback(null);
-    setUserError(null);
-    setPassError(null);
+    setNomeError(null);
+    setSenhaError(null);
     setEmailError(null);
-    setConfirmPassError(null);
+    setConfirmSenhaError(null);
+
     let hasError = false;
-    if (!username.trim()) {
-      setUserError("Informe o usuário.");
+
+    if (!nome.trim()) {
+      setNomeError("Informe o nome.");
       hasError = true;
     }
     if (!email.trim()) {
@@ -41,30 +52,41 @@ export default function Cadastro() {
       setEmailError("Por favor, insira um email válido: exemplo@dominio.com");
       hasError = true;
     }
-    if (password.length <= 0) {
-      setPassError("Insira a sua senha.");
+    if (senha.length === 0) {
+      setSenhaError("Insira a sua senha.");
       hasError = true;
     }
-    if (confirmPassword.length <= 0) {
-      setConfirmPassError("Confirme a sua senha.");
+    if (confirmSenha.length === 0) {
+      setConfirmSenhaError("Confirme a sua senha.");
       hasError = true;
     }
-    if (password !== confirmPassword) {
-      setConfirmPassError("As senhas não coincidem.");
+    if (senha && confirmSenha && senha !== confirmSenha) {
+      setConfirmSenhaError("As senhas não coincidem.");
       hasError = true;
-    }
-    if (password == confirmPassword) {
-      setIsPasswordMatch(true);
     }
     if (!isPasswordValid) {
-      setPassError("A senha não atende aos critérios mínimos.");
+      setSenhaError("A senha não atende aos critérios mínimos.");
       hasError = true;
     }
+
     if (hasError) return;
+
     try {
       setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1200));
-      setFeedback("Cadastro realizado com sucesso!");
+      const res = await api.auth.register({ email, pNome: nome, senha });
+      saveToken(res.token);
+      navigate("/home", { replace: true });
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      const body = (err as { body?: { code?: string } }).body;
+      if (status === 409 || body?.code === "EMAIL_ALREADY_EXISTS") {
+        setEmailError("Email já cadastrado.");
+      } else {
+        setFeedback({
+          message: "Falha ao cadastrar. Tente novamente.",
+          variant: "error",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,16 +107,16 @@ export default function Cadastro() {
         >
           <div className="mb-4">
             <Input
-              id="NomeUsuario"
-              label="Nome do Usuário"
-              placeholder="felipeprinci"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              variant={userError ? "error" : "default"}
+              id="nome"
+              label="Nome"
+              placeholder="Felipe Princi"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              variant={nomeError ? "error" : "default"}
             />
-            {userError && (
+            {nomeError && (
               <p className="text-red-500 text-xs italic -mt-3 mb-2">
-                {userError}
+                {nomeError}
               </p>
             )}
           </div>
@@ -116,52 +138,52 @@ export default function Cadastro() {
           </div>
           <div className="mb-4 relative">
             <Input
-              id="password"
+              id="senha"
               label="Senha"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              value={password}
+              value={senha}
               onChange={(e) => {
-                setPassword(e.target.value);
+                setSenha(e.target.value);
               }}
               onFocus={() => setIsPasswordFocused(true)}
               onBlur={() => setTimeout(() => setIsPasswordFocused(false), 150)}
-              variant={passError ? "error" : "default"}
+              variant={senhaError ? "error" : "default"}
             />
             <button
               type="button"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               aria-pressed={showPassword}
               onClick={() => setShowPassword((s) => !s)}
-              onMouseDown={(e) => e.preventDefault()}
-              className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+              onMouseDown={(event) => event.preventDefault()}
+              className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 text-xs font-semibold"
             >
-              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              {showPassword ? "Ocultar" : "Mostrar"}
             </button>
-            {passError && (
+            {senhaError && (
               <p className="text-red-500 text-xs italic -mt-3 mb-2">
-                {passError}
+                {senhaError}
               </p>
             )}
             <ValidadorSenha
-              password={password}
+              password={senha}
               visible={isPasswordFocused}
               onValidationChange={setIsPasswordValid}
             />
           </div>
           <div className="mb-4">
             <Input
-              id="confirmPassword"
+              id="confirmSenha"
               label="Confirme a Senha"
               type="password"
               placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              variant={confirmPassError ? "error" : "default"}
+              value={confirmSenha}
+              onChange={(e) => setConfirmSenha(e.target.value)}
+              variant={confirmSenhaError ? "error" : "default"}
             />
-            {confirmPassError && (
+            {confirmSenhaError && (
               <p className="text-red-500 text-xs italic -mt-3 mb-2">
-                {confirmPassError}
+                {confirmSenhaError}
               </p>
             )}
           </div>
@@ -169,19 +191,17 @@ export default function Cadastro() {
             <div
               role="status"
               aria-live="polite"
-              className="my-2 text-green-700 text-1xs"
+              className={`my-2 text-sm ${feedback.variant === "error" ? "text-red-600" : "text-green-700"}`}
             >
-              {feedback}
+              {feedback.message}
             </div>
           )}
-          {!isPasswordFocused && (
-            <p className="opacity-100 italic block">
-              Ja tem uma conta?{" "}
-              <a className="text-sky-500 hover:underline" href="/login">
-                Login
-              </a>
-            </p>
-          )}
+          <p className="opacity-100 italic block">
+            Já tem uma conta?{" "}
+            <Link className="text-sky-500 hover:underline" to="/login">
+              Login
+            </Link>
+          </p>
           <Button
             type="submit"
             disabled={isLoading}

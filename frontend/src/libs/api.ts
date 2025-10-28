@@ -63,6 +63,12 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+    
+    register: (payload: import("../type/dto").RegisterRequestDTO) =>
+      request<import("../type/dto").RegisterResponseDTO>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),  
 
     me: () =>
       request<{ email: string; pNome: string }>("/auth/me", {

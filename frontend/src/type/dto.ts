@@ -20,3 +20,13 @@ export type ApiErrorDTO = {
   code: string;    // ex: "INVALID_CREDENTIALS"
   message: string; // ex: "Usuário ou senha inválidos"
 };
+
+// cadastro -> o front envia dados completos do usuário
+export type RegisterRequestDTO = {
+  email: string;
+  pNome: string;
+  senha: string;
+};
+
+// sucesso no cadastro reaproveita o mesmo payload de login
+export type RegisterResponseDTO = LoginResponseDTO;
