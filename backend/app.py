@@ -123,6 +123,60 @@ def login():
         }
     }), 200
 
+@app.post("/auth/register")
+def register():
+    """
+    Espera JSON:
+      { "email": "...", "pNome": "...", "senha": "..." }
+
+    Respostas:
+      201: { "token": "...", "user": { email, pNome } }
+      400: { "code": "BAD_REQUEST", "message": "Campos obrigatórios ausentes" }
+      409: { "code": "EMAIL_ALREADY_EXISTS", "message": "Email já cadastrado" }
+    """
+    if not request.is_json:
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+    nome = (data.get("pNome") or "").strip()
+    senha = data.get("senha") or ""
+
+    if not email or not nome or not senha:
+        return jsonify({"code": "BAD_REQUEST", "message": "Email, nome e senha são obrigatórios"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    try:
+        cur.execute(
+            "SELECT 1 FROM Usuario WHERE email = %s",
+            (email,)
+        )
+        if cur.fetchone():
+            return jsonify({"code": "EMAIL_ALREADY_EXISTS", "message": "Email já cadastrado"}), 409
+
+        cur.execute(
+            "INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)",
+            (email, nome, senha)
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao cadastrar usuário"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    token = generate_token({"email": email, "pNome": nome})
+
+    return jsonify({
+        "token": token,
+        "user": {
+            "email": email,
+            "pNome": nome,
+        }
+    }), 201
+
 @app.get("/auth/me")
 def me():
     """
