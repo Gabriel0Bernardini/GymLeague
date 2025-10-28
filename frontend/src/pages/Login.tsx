@@ -27,6 +27,7 @@ export default function Login() {
     const [userError, setUserError] = useState<string | null>(null);
     const [passError, setPassError] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<string | null>(null);
+    const [hasError, setHasError] = useState(false);
 
  // submit do formulário
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -36,6 +37,14 @@ export default function Login() {
         // resetar erros antes de validar
         setUserError(null);
         setPassError(null);
+
+        setHasError(false);
+        if (!email.trim() || senha.length <= 0) {
+            setUserError("");
+            setPassError("O usuário ou a senha estão incorretos.");
+            setHasError(true);
+        }
+        if (hasError) return;
 
         try {
             clearToken();
@@ -50,6 +59,7 @@ export default function Login() {
             if (err.status === 401 || err?.body?.code === "INVALID_CREDENTIALS") {
                 setPassError("Usuário ou senha inválidos.");
             } else {
+                setHasError(true);
                 setFeedback("Falha ao conectar. Tente novamente.");
             }
         } finally {
@@ -74,7 +84,7 @@ export default function Login() {
                 <Input
                   id="email"
                   label="Email"
-                  placeholder="Seu Digite seu email"
+                  placeholder="Digite seu email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   // quando há erro, mudamos a variante para o estilo vermelho
@@ -119,12 +129,11 @@ export default function Login() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className="my-2 text-green-700 text-1xs"
+                  className={hasError ? "my-2 text-red-500 text-1xs" : "my-2 text-green-500 text-1xs"}
                 >
                   {feedback}
                 </div>
               )}
-              {!feedback && (
                 <p className="opacity-100 italic block">
                   Não tem cadastro?{" "}
                   <a
@@ -134,7 +143,6 @@ export default function Login() {
                     Cadastre-se
                   </a>
                 </p>
-              )}
               <Button
                 type="submit"
                 disabled={isLoading}

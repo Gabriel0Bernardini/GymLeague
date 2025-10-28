@@ -138,7 +138,7 @@ export default function Cadastro() {
               </p>
             )}
           </div>
-          <div className="mb-4 relative">
+          <div className="mb-4 relative z-1">
             <Input
               id="senha"
               label="Senha"
@@ -173,7 +173,7 @@ export default function Cadastro() {
               onValidationChange={setIsPasswordValid}
             />
           </div>
-          <div className="mb-4 relative">
+          <div className="mb-4 relative z-0">
             <Input
               id="confirmSenha"
               label="Confirme a Senha"
