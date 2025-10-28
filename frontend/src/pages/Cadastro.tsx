@@ -5,6 +5,7 @@ import Button from "../components/ui/Button";
 import ValidadorSenha from "../components/ui/ValidadorSenha";
 import { api } from "../libs/api";
 import { saveToken } from "../libs/auth";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 type FeedbackState = {
   message: string;
@@ -21,6 +22,7 @@ export default function Cadastro() {
 
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -158,7 +160,7 @@ export default function Cadastro() {
               onMouseDown={(event) => event.preventDefault()}
               className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 text-xs font-semibold"
             >
-              {showPassword ? "Ocultar" : "Mostrar"}
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </button>
             {senhaError && (
               <p className="text-red-500 text-xs italic -mt-3 mb-2">
@@ -171,16 +173,26 @@ export default function Cadastro() {
               onValidationChange={setIsPasswordValid}
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <Input
               id="confirmSenha"
               label="Confirme a Senha"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••"
               value={confirmSenha}
               onChange={(e) => setConfirmSenha(e.target.value)}
               variant={confirmSenhaError ? "error" : "default"}
             />
+            <button
+              type="button"
+              aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={showConfirmPassword}
+              onClick={() => setShowConfirmPassword((s) => !s)}
+              onMouseDown={(event) => event.preventDefault()}
+              className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 text-xs font-semibold"
+            >
+              {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
             {confirmSenhaError && (
               <p className="text-red-500 text-xs italic -mt-3 mb-2">
                 {confirmSenhaError}
