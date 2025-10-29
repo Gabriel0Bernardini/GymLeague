@@ -1,5 +1,4 @@
 import os
-import mysql.connector
 from mysql.connector import pooling
 from dotenv import load_dotenv
 
@@ -15,7 +14,6 @@ DB_CONFIG = {
     "use_pure": True,
 }
 
-# Pool de conexões para eficiência
 pool = pooling.MySQLConnectionPool(
     pool_name="gym_pool",
     pool_size=5,

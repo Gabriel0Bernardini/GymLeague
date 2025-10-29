@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from db import get_conn
 
-# --- Config ---
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
@@ -18,7 +17,6 @@ FRONT_ORIGIN = os.getenv("FRONT_ORIGIN", "http://localhost:5173")
 app = Flask(__name__)
 CORS(app, origins=[FRONT_ORIGIN])
 
-# --- Helpers JWT ---
 def generate_token(user_row):
     """
     Gera um JWT contendo:
@@ -72,7 +70,6 @@ def get_auth_user_from_header():
 
     return None
 
-# --- Rotas ---
 @app.get("/health")
 def health():
     """Saúde do servidor (para teste rápido)."""
@@ -88,6 +85,7 @@ def login():
       200: { "token": "...", "user": { email, pNome } }
       400: { "code": "BAD_REQUEST", "message": "Corpo inválido" }
       401: { "code": "INVALID_CREDENTIALS", "message": "Usuário ou senha inválidos" }
+      500: { "code": "INTERNAL_ERROR", "message": "Erro ao logar" }
     """
     if not request.is_json:
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
@@ -101,13 +99,19 @@ def login():
 
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
-    cur.execute(
-        "SELECT * FROM Usuario WHERE email = %s",
-        (email,)
-    )
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
+    user = None
+    try:
+        SQL = "SELECT * FROM Usuario WHERE email = %s"
+        cur.execute(
+            SQL,
+            (email,)
+        )
+        user = cur.fetchone()
+    except Exception:
+        return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao logar"}), 500
+    finally:
+        cur.close()
+        conn.close()
 
     # Sem hash: comparação direta (apenas para testes)
     if not user or user["senha"] != senha:
@@ -148,15 +152,17 @@ def register():
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
     try:
+        SQL = "SELECT 1 FROM Usuario WHERE email = %s"
         cur.execute(
-            "SELECT 1 FROM Usuario WHERE email = %s",
+            SQL,
             (email,)
         )
         if cur.fetchone():
             return jsonify({"code": "EMAIL_ALREADY_EXISTS", "message": "Email já cadastrado"}), 409
 
+        SQL = "INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)"
         cur.execute(
-            "INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)",
+            SQL,
             (email, nome, senha)
         )
         conn.commit()
@@ -179,6 +185,16 @@ def register():
 
 @app.post("/auth/update")
 def update():
+    """
+    Espera JSON:
+      { "email": "...", "pNome": "...", "senha": "..." }
+
+    Respostas:
+      201: { "token": "...", "user": { email, pNome } }
+      400: {"code": "BAD_REQUEST", "message": "Corpo inválido"}
+      402: { "code": "BAD_REQUEST", "message": "Nome é obrigatório" }
+      500: { "code": "INTERNAL_ERROR", "message": "Erro ao atualizar usuário" }
+    """
     if not request.is_json:
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
     data = request.get_json(silent=True) or {}
@@ -187,10 +203,10 @@ def update():
     email = data.get("email")
     
     if not nome:
-        return jsonify({"code": "BAD_REQUEST", "message": "Nome é obrigatório"}), 400
+        return jsonify({"code": "BAD_REQUEST", "message": "Nome é obrigatório"}), 402
     
-    if not nome:
-        return jsonify({"code": "BAD_REQUEST", "message": "Usuário nao logado"}), 400
+    if not email:
+        return jsonify({"code": "BAD_REQUEST", "message": "Usuário nao logado"}), 401
 
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
@@ -246,7 +262,6 @@ def me():
         "pNome": user["pNome"],
     }), 200
 
-# --- Execução ---
 if __name__ == "__main__":
     port = int(os.getenv("FLASK_RUN_PORT", 5000))
     debug = bool(int(os.getenv("FLASK_DEBUG", "1")))

@@ -7,6 +7,7 @@ import type { User } from "./Home"
 import { api } from "../libs/api";
 import { saveToken } from "../libs/auth";
 import { useNavigate } from "react-router-dom";
+import { clearToken } from "../libs/auth";
 
 export default function Perfil() {
   const navigate = useNavigate();
@@ -24,6 +25,11 @@ export default function Perfil() {
   const [confirmPassError, setConfirmPassError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  function handleLogout(){
+      clearToken();
+      navigate("/", { replace: true });
+    }
+
   useEffect(() => {
       let active = true;
   
@@ -35,7 +41,7 @@ export default function Perfil() {
           }
         })
         .catch(() => {
-          // token inválido/expirado, tratar com logout ou redirect
+          handleLogout();
         });
   
       return () => {
