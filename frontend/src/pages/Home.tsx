@@ -5,9 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../libs/api"
 import { useEffect, useState } from "react";
 
-type User = {
-  pNome?: string;
-  email?: string;
+export type User = {
+  pNome: string;
+  email: string;
 }
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
         if (active) setUser(data);
       })
       .catch(() => {
-        // token inválido/expirado → trate com logout ou redirect
+        // token inválido/expirado, tratar com logout ou redirect
       });
 
     return () => {
@@ -31,7 +31,6 @@ export default function Home() {
   }, []);
 
   function handleLogout(){
-
     clearToken();
     navigate("/login", { replace: true });
   }

@@ -15,7 +15,6 @@ export type LoginResponseDTO = {
   };
 };
 
-// erro padronizado (combine com o back)
 export type ApiErrorDTO = {
   code: string;    // ex: "INVALID_CREDENTIALS"
   message: string; // ex: "Usuário ou senha inválidos"
@@ -30,3 +29,7 @@ export type RegisterRequestDTO = {
 
 // sucesso no cadastro reaproveita o mesmo payload de login
 export type RegisterResponseDTO = LoginResponseDTO;
+
+export type UpdateRequest = RegisterRequestDTO;
+
+export type UpdateResponseDTO = LoginResponseDTO

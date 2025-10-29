@@ -70,6 +70,12 @@ export const api = {
         body: JSON.stringify(payload),
       }),  
 
+    update: (payload:  import("../type/dto").UpdateRequest) =>
+      request<import("../type/dto").UpdateResponseDTO>("/auth/update", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
     me: () =>
       request<{ email: string; pNome: string }>("/auth/me", {
         auth: true,

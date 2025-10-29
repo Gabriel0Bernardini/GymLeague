@@ -177,6 +177,58 @@ def register():
         }
     }), 201
 
+@app.post("/auth/update")
+def update():
+    if not request.is_json:
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+    data = request.get_json(silent=True) or {}
+    nome = data.get("pNome")
+    senha = data.get("senha")
+    email = data.get("email")
+    
+    if not nome:
+        return jsonify({"code": "BAD_REQUEST", "message": "Nome é obrigatório"}), 400
+    
+    if not nome:
+        return jsonify({"code": "BAD_REQUEST", "message": "Usuário nao logado"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    
+    try:
+        SQL = "UPDATE Usuario SET pNome=%s"
+        if senha:
+            SQL += ", senha=%s"
+        SQL += " WHERE email=%s"
+        
+        if senha:
+            cur.execute(
+                SQL,
+                (nome, senha, email)
+            )
+        else:
+            cur.execute(
+                SQL,
+                (nome, email)
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao atualizar usuário"}), 500
+    finally:
+        cur.close()
+        conn.close()
+    
+    token = generate_token({"email": email, "pNome": nome})
+    
+    return jsonify({
+        "token": token,
+        "user": {
+            "email": email,
+            "pNome": nome,
+        }
+    }), 201
+    
 @app.get("/auth/me")
 def me():
     """

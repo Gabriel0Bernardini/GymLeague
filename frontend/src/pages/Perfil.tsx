@@ -1,17 +1,22 @@
 import { FaUser } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import ValidadorSenha from "../components/ui/ValidadorSenha";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import type { User } from "./Home"
+import { api } from "../libs/api";
+import { saveToken } from "../libs/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function Perfil() {
-  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<User | null>(null)
+  const [nome, setNome] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [userError, setUserError] = useState<string | null>(null);
@@ -19,6 +24,25 @@ export default function Perfil() {
   const [confirmPassError, setConfirmPassError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  useEffect(() => {
+      let active = true;
+  
+      api.auth.me()
+        .then((data) => {
+          if (active){
+            setUser(data);
+            setNome(data.pNome)
+          }
+        })
+        .catch(() => {
+          // token inválido/expirado, tratar com logout ou redirect
+        });
+  
+      return () => {
+        active = false;
+      };
+    }, []);
+  
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFeedback(null);
@@ -28,24 +52,12 @@ export default function Perfil() {
 
     let hasError = false;
 
-    if (!username.trim()) {
+    if (!nome.trim()) {
       setUserError("Informe o usuário.");
-      hasError = true;
-    }
-    if (password.length <= 0) {
-      setPassError("Insira a sua senha.");
-      hasError = true;
-    }
-    if (confirmPassword.length <= 0) {
-      setConfirmPassError("Confirme a sua senha.");
       hasError = true;
     }
     if (password !== confirmPassword) {
       setConfirmPassError("As senhas não coincidem.");
-      hasError = true;
-    }
-    if (!isPasswordValid) {
-      setPassError("A senha não atende aos critérios mínimos.");
       hasError = true;
     }
 
@@ -53,8 +65,12 @@ export default function Perfil() {
 
     try {
       setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1200));
+      const res = await api.auth.update({email: user?.email ?? "", pNome: nome, senha: password});
+      saveToken(res.token);
+      navigate("/home", { replace: true });
       setFeedback("Atualização realizada com sucesso!");
+    } catch(err){
+      setFeedback("Falha ao cadastrar. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -79,9 +95,9 @@ export default function Perfil() {
             <Input
               id="NomeUsuario"
               label="Nome do Usuário"
-              placeholder="nome antigo"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
               variant={userError ? "error" : "default"}
             />
             {userError && (
@@ -90,16 +106,14 @@ export default function Perfil() {
               </p>
             )}
           </div>
-          <div className="mb-4 relative">
+          <div className="mb-4 relative z-1">
             <Input
               id="password"
               label="Senha"
               type={showPassword ? "text" : "password"}
-              placeholder="(Senha antiga)"
+              placeholder="Mantenha vazio para não alterar a senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setIsPasswordFocused(true)}
-              onBlur={() => setTimeout(() => setIsPasswordFocused(false), 150)}
               variant={passError ? "error" : "default"}
             />
             <button
@@ -118,22 +132,15 @@ export default function Perfil() {
                 {passError}
               </p>
             )}
-
-            {/* Popup de validação da senha */}
-            <ValidadorSenha
-              password={password}
-              visible={isPasswordFocused}
-              onValidationChange={setIsPasswordValid}
-            />
           </div>
 
           {/* Confirmação de senha */}
-          <div className="mb-4">
+          <div className="mb-4 relative z-0">
             <Input
               id="confirmPassword"
               label="Confirme a Senha"
-              type="password"
-              placeholder="(Senha antiga)"
+              type={showConfirmPass ? "text" : "password"}
+              placeholder="Mantenha vazio para não alterar a senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               variant={confirmPassError ? "error" : "default"}
@@ -143,6 +150,16 @@ export default function Perfil() {
                 {confirmPassError}
               </p>
             )}
+          <button
+              type="button"
+              aria-label={showConfirmPass ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={showConfirmPass}
+              onClick={() => setShowConfirmPass((s) => !s)}
+              onMouseDown={(e) => e.preventDefault()}
+              className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+          >
+            {showConfirmPass ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+          </button>
           </div>
 
           {/* Botão e feedback */}
