@@ -14,6 +14,11 @@ export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   
+  function handleLogout(){
+    clearToken();
+    navigate("/", { replace: true });
+  }
+
   useEffect(() => {
     let active = true;
 
@@ -22,7 +27,7 @@ export default function Home() {
         if (active) setUser(data);
       })
       .catch(() => {
-        // token inválido/expirado, tratar com logout ou redirect
+        handleLogout();
       });
 
     return () => {
@@ -30,10 +35,6 @@ export default function Home() {
     };
   }, []);
 
-  function handleLogout(){
-    clearToken();
-    navigate("/", { replace: true });
-  }
 
   return (
     <div>

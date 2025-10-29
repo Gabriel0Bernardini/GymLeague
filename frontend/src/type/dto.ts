@@ -1,5 +1,3 @@
-// src/types/dto.ts
-
 // req -> o que o front envia no POST /auth/login
 export type LoginRequestDTO = {
   email: string;
@@ -20,14 +18,12 @@ export type ApiErrorDTO = {
   message: string; // ex: "Usuário ou senha inválidos"
 };
 
-// cadastro -> o front envia dados completos do usuário
 export type RegisterRequestDTO = {
   email: string;
   pNome: string;
   senha: string;
 };
 
-// sucesso no cadastro reaproveita o mesmo payload de login
 export type RegisterResponseDTO = LoginResponseDTO;
 
 export type UpdateRequest = RegisterRequestDTO;

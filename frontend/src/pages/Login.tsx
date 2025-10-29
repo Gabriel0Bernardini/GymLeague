@@ -6,9 +6,6 @@ import { clearToken, saveToken } from "../libs/auth";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
-// se já for usar router:
-
-
 /*
   Conceitos:
   - useState: cria estado reativo. Ao mudar (setAlgo), o React redesenha a interface;
@@ -29,12 +26,11 @@ export default function Login() {
     const [feedback, setFeedback] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
 
- // submit do formulário
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault(); // NÃO recarregar a página (comportamento padrão do HTML)
         setFeedback(null);
 
-        // resetar erros antes de validar
         setUserError(null);
         setPassError(null);
 
@@ -54,7 +50,7 @@ export default function Login() {
             setFeedback("Login realizado com sucesso!");
             navigate("/home");
         
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
         } catch (err: any) {
             if (err.status === 401 || err?.body?.code === "INVALID_CREDENTIALS") {
                 setPassError("Usuário ou senha inválidos.");
@@ -87,7 +83,6 @@ export default function Login() {
                   placeholder="Digite seu email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  // quando há erro, mudamos a variante para o estilo vermelho
                   variant={userError ? "error" : "default"}
                 />
                 {/* mensagem de erro específica do username (opcional, pois seu Input já pode exibir) */}
