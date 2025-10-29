@@ -32,7 +32,7 @@ export default function Home() {
 
   function handleLogout(){
     clearToken();
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   }
 
   return (
