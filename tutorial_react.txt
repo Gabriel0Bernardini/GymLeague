@@ -1,0 +1,42 @@
+Passo a passo — Front-end React (Vite + TypeScript)
+
+#-----------------------------------------------------------------------------------------------------#
+
+1. Pré-requisitos
+   - Instale o Node.js 18 LTS ou superior: https://nodejs.org
+   - Confirme as versões:
+     node -v
+     npm -v
+
+#-----------------------------------------------------------------------------------------------------#
+
+2. Clonar o repositório e acessar o front-end
+   git clone <url-do-repositorio>
+   cd trabalho-pr-tico-gymleague/frontend
+
+#-----------------------------------------------------------------------------------------------------#
+
+3. Instalar dependências
+   npm install
+
+#-----------------------------------------------------------------------------------------------------#
+
+4. Configurar variáveis de ambiente
+   - Crie o arquivo .env na pasta frontend.
+   - Informe a URL da API Flask:
+     VITE_API_URL=http://localhost:5000
+
+#-----------------------------------------------------------------------------------------------------#
+
+5. Executar o servidor de desenvolvimento
+   npm run dev
+   - A aplicação fica disponível em http://localhost:5173
+   - Pressione q no terminal para encerrar ou use Ctrl+C.
+
+#-----------------------------------------------------------------------------------------------------#
+
+6. Outros comandos úteis
+   npm run lint    # verifica padrões de código
+   npm run build   # gera artefatos de produção em dist/
+
+#-----------------------------------------------------------------------------------------------------#

@@ -1,0 +1,81 @@
+Passo a passo — Back-end Flask (API GymLeague)
+
+#-----------------------------------------------------------------------------------------------------#
+
+1. Pré-requisitos
+   - Python 3.11 ou superior instalado (python --version)
+   - Pip atualizado (pip --version)
+   - Servidor MySQL acessível (mysql --version)
+   - (Opcional) Ferramenta de gerenciamento de variáveis .env
+
+#-----------------------------------------------------------------------------------------------------#
+
+2. Clonar o repositório e acessar o diretório do back-end
+   git clone <url-do-repositorio>
+   cd trabalho-pr-tico-gymleague/backend
+
+#-----------------------------------------------------------------------------------------------------#
+
+3. Criar e ativar o ambiente virtual
+   python -m venv venv
+   source venv/bin/activate          # Linux/macOS
+   # ou
+   venv\Scripts\activate             # Windows
+
+#-----------------------------------------------------------------------------------------------------#
+
+4. Instalar dependências
+   pip install --upgrade pip
+   pip install -r requirements.txt
+
+#-----------------------------------------------------------------------------------------------------#
+
+5. Configurar variáveis de ambiente
+   - Crie um arquivo .env na pasta backend contendo:
+     SECRET_KEY=dev-secret
+     FRONT_ORIGIN=http://localhost:5173
+     DB_HOST=localhost
+     DB_PORT=3306
+     DB_USER=root
+     DB_PASSWORD=root
+     DB_NAME=gymLeague
+     FLASK_RUN_PORT=5000
+     FLASK_DEBUG=1
+
+#-----------------------------------------------------------------------------------------------------#
+
+6. Preparar o banco de dados MySQL
+   - Crie o schema (caso não exista):
+     mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS gymLeague CHARACTER SET utf8mb4;"
+   - Estrutura mínima da tabela de usuários:
+     CREATE TABLE IF NOT EXISTS Usuario (
+       email VARCHAR(255) PRIMARY KEY,
+       pNome VARCHAR(120) NOT NULL,
+       senha VARCHAR(255) NOT NULL
+     );
+
+#-----------------------------------------------------------------------------------------------------#
+
+7. Executar a API Flask
+   # Com Flask CLI
+   flask --app app run
+
+   # Ou diretamente
+   python app.py
+
+   O servidor inicia por padrão em http://localhost:5000.
+
+#-----------------------------------------------------------------------------------------------------#
+
+8. Testar o endpoint de saúde
+   curl http://localhost:5000/health
+
+   Resposta esperada: {"status": "ok"}
+
+#-----------------------------------------------------------------------------------------------------#
+
+9. Parar o servidor e desativar o ambiente virtual
+   - Interrompa com Ctrl+C.
+   - Desative o venv: deactivate
+
+#-----------------------------------------------------------------------------------------------------#

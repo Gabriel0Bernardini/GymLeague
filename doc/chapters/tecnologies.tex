@@ -6,31 +6,24 @@
 Nesta seção são descritas as principais tecnologias e ferramentas empregadas até o momento no desenvolvimento do projeto.
 
 \section{Front-end}
-O front-end da aplicação está sendo construído com o \textbf{React} na sua versão mais recente, utilizando o empacotador \textbf{Vite} para inicialização e gerenciamento do ambiente de desenvolvimento. A linguagem escolhida é o \textbf{TypeScript}, devido à sua tipagem estática e maior segurança no desenvolvimento.
+O front-end da aplicação está sendo construído com o \textbf{React 19}, utilizando \textbf{TypeScript} para garantir tipagem estática e maior segurança no desenvolvimento. O bundler \textbf{Vite} (com o plugin oficial \texttt{@tailwindcss/vite}) cuida do ambiente de desenvolvimento e da etapa de build. O estilo das telas é feito predominantemente com \textbf{Tailwind CSS 4}, configurado a partir do arquivo \texttt{frontend/src/styles/globals.css}.
 
 \subsection{Principais bibliotecas}
 \begin{itemize}
-    \item \textbf{React Router DOM}: utilizado para a criação e gerenciamento das rotas de navegação entre as páginas (login, cadastro, perfil, home, etc.);
-    \item \textbf{React Hook Form}: responsável pelo controle e validação de formulários de forma performática;
-    \item \textbf{Zod}: biblioteca de validação de dados, integrada ao React Hook Form para validações tipadas;
-    \item \textbf{TanStack React Query}: gerenciamento de estados assíncronos e cache de requisições HTTP;
-    \item \textbf{TailwindCSS}: framework CSS para construção rápida e responsiva de interfaces.
+    \item \textbf{React Router DOM (v7)}: realiza o roteamento entre as páginas públicas (landing, login, cadastro) e áreas protegidas (home, perfil);
+    \item \textbf{React Icons}: provê os ícones utilizados em formulários e cabeçalhos, garantindo consistência visual sem importar SVGs manualmente;
+    \item \textbf{Fetch API}: encapsulada no utilitário \texttt{frontend/src/libs/api.ts}, centralizando headers, tratamento de erros e inclusão condicional do token JWT;
+    \item \textbf{ESLint + TypeScript ESLint}: padronizam o estilo e a qualidade do código durante o desenvolvimento (\texttt{frontend/eslint.config.js}).
 \end{itemize}
 
 \section{Back-end}
-O back-end será desenvolvido utilizando o framework \textbf{Flask}, escrito em Python, que permitirá a criação de rotas e endpoints de forma ágil. O Flask será responsável por lidar com autenticação, manipulação de dados e comunicação com o banco de dados.
+O back-end está sendo construído com o framework \textbf{Flask 3}, escrito em Python, responsável pela definição das rotas e pela lógica de autenticação. O módulo \textbf{Flask-CORS} libera o domínio do front-end durante o desenvolvimento, enquanto a biblioteca \textbf{PyJWT} gera e valida os tokens JWT usados na autenticação do usuário. A configuração de variáveis sensíveis é feita com \textbf{python-dotenv}, e o acesso ao banco utiliza \textbf{mysql-connector-python} com pool de conexões (arquivo \texttt{backend/db.py}).
 
 \section{Banco de Dados}
-O Sistema Gerenciador de Banco de Dados (SGBD) ainda está em análise. As principais opções avaliadas são:
-\begin{itemize}
-    \item \textbf{PostgreSQL}: robusto e adequado para aplicações web escaláveis;
-    \item \textbf{SQLite}: leve e ideal para o estágio inicial de desenvolvimento;
-    \item \textbf{MySQL}: alternativa amplamente utilizada e de fácil integração;
-    \item \textbf{SQLite}: implementado direto no backend.
-\end{itemize}
+Adotamos o \textbf{MySQL} como Sistema Gerenciador de Banco de Dados, armazenando informações de autenticação na tabela \texttt{Usuario}. O acesso é realizado por meio de um pool de conexões configurado em \texttt{backend/db.py}, reduzindo a sobrecarga na abertura de conexões a cada requisição. A camada de serviço em \texttt{backend/app.py} executa consultas parametrizadas para evitar injeção de SQL e facilitar a evolução futura do schema.
 
 \section{Controle de Versão}
 O versionamento do projeto está sendo realizado através do \textbf{Git} e hospedado no \textbf{GitHub}, permitindo o acompanhamento de alterações, controle de branches e colaboração entre os membros do grupo.
 
 \section{IDE e Ferramentas de Desenvolvimento}
-A principal IDE utilizada é o \textbf{Visual Studio Code}, configurado com extensões para suporte ao React, TypeScript, formatação de código e integração direta com o GitHub. O Node.js é usado como ambiente de execução e gerenciador de pacotes (\textit{npm}) para o front-end.
+A principal IDE utilizada é o \textbf{Visual Studio Code}, configurado com extensões para suporte ao React, TypeScript, formatação de código e integração direta com o GitHub. O \textbf{Node.js} (via \textit{npm}) gerencia as dependências do front-end, enquanto o ambiente Python é gerenciado por um \texttt{venv} descrito no arquivo \texttt{backend/requirements.txt}.
