@@ -1,61 +1,64 @@
-Guia prático: Como criar e trabalhar com branches no Git (modelo Git Flow)
+Guia de Branches e Pull Requests — Projeto GymLeague
 
-1. Garantir que está na branch principal (main)
+#-----------------------------------------------------------------------------------------------------#
+
+1. Sincronizar a branch principal
    git checkout main
-   git pull
+   git pull origin main
 
-   Isso garante que você está com o código mais atualizado antes de criar uma nova branch.
-
-#-----------------------------------------------------------------------------------------------------#
-
-2. Criar uma nova branch para sua tarefa
-   - Use o formato: feature/[código-da-tarefa]-[descrição-curta]
-   - Exemplo:
-     git checkout -b feature/KAN-56-calculo-taxas
-     (ou, se for um bug)
-     git checkout -b bugfix/KAN-107-corrige-calculo
+   Mantenha sempre a branch local atualizada antes de iniciar uma tarefa para evitar conflitos futuros.
 
 #-----------------------------------------------------------------------------------------------------#
 
-3. Fazer as alterações necessárias no código
-   - Edite, adicione ou remova arquivos conforme a tarefa.
+2. Criar uma branch descritiva para a tarefa
+   Formato sugerido:
+   - feature/<descricao-curta> para novas funcionalidades
+   - fix/<descricao-curta> para correções
+
+   Exemplo:
+   git checkout -b feature/landing-header-responsivo
 
 #-----------------------------------------------------------------------------------------------------#
 
-4. Adicionar os arquivos modificados ao commit
-   - Faça pelo Source Control.
+3. Desenvolver e acompanhar mudanças
+   - Implemente a tarefa.
+   - Use git status para revisar o que foi alterado.
+   - Rode verificações locais sempre que possível (ex.: npm run lint, flask --app app.py --help).
 
 #-----------------------------------------------------------------------------------------------------#
 
-5. Criar o commit com mensagem padronizada
-   - Formato: “[Código da Tarefa]: [Mensagem clara e objetiva]”
-   - Exemplo:
-      "KAN-107: Adiciona funcionalidade de cálculo de taxas"
-      "KAN-56: Corrige bug no cálculo de taxas"
+4. Preparar e criar o commit
+   git add caminho/do/arquivo
+   git commit -m "Landing: ajusta header responsivo"
+
+   Dicas:
+   - Commits pequenos e focados facilitam a revisão.
+   - Utilize mensagens claras indicando o módulo impactado.
 
 #-----------------------------------------------------------------------------------------------------#
 
-6. Enviar a branch para o repositório remoto
-   git push origin feature/KAN-56-calculo-taxas
+5. Enviar a branch para o repositório remoto
+   git push -u origin feature/landing-header-responsivo
 
 #-----------------------------------------------------------------------------------------------------#
 
-7. Criar o Pull Request (PR)
-   - No GitHub/GitLab/Bitbucket, abra um PR da sua branch para a main.
-   - Descreva o que foi feito, por exemplo:
-     “Este PR adiciona o cálculo de taxas na tela de checkout, referente à tarefa KAN-56. 
-      Inclui testes unitários.”
+6. Abrir o Pull Request
+   - No GitHub, crie um PR de sua branch para main.
+   - Descreva o contexto, os arquivos principais e se há passos de teste.
+   - Vincule à tarefa correspondente (quando houver).
 
 #-----------------------------------------------------------------------------------------------------#
 
-8. Revisão de código
-   - Outro membro do grupo deve revisar o PR antes de fazer o merge.
-   - Após aprovação, o PR é mesclado (merge) na branch main.
+7. Revisão e merge
+   - Aguarde pelo menos uma revisão de outro membro.
+   - Resolva comentários e conflitos, se existirem.
+   - Após aprovação, conclua o merge via GitHub.
 
 #-----------------------------------------------------------------------------------------------------#
 
-9. Atualizar o repositório local após o merge
+8. Atualizar o ambiente local após o merge
    git checkout main
-   git pull
+   git pull origin main
+   git branch -d feature/landing-header-responsivo   (opcional para remover a branch local já mesclada)
 
 #-----------------------------------------------------------------------------------------------------#

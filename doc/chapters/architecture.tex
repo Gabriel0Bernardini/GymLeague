@@ -1,0 +1,105 @@
+% ==========================================================
+% CAPÍTULO — ARQUITETURA E OPERAÇÕES
+% ==========================================================
+\chapter{Arquitetura e Operações}
+
+\section{Visão Geral da Arquitetura}
+O projeto segue uma arquitetura em duas camadas bem definidas (front-end e back-end), comunicando-se via HTTP e token JWT. A Figura conceitual é descrita textualmente a seguir:
+
+\subsection{Camada de Apresentação (Front-end)}
+\begin{itemize}
+    \item \textbf{Tecnologias}: React 19 com TypeScript, Vite e Tailwind CSS 4;
+    \item \textbf{Estrutura de código}: os componentes reutilizáveis ficam em \texttt{frontend/src/components}, as páginas em \texttt{frontend/src/pages} e integrações externas em \texttt{frontend/src/libs};
+    \item \textbf{Roteamento}: \texttt{frontend/src/App.tsx} define rotas públicas (\texttt{/}, \texttt{/login}, \texttt{/cadastro}) e rotas protegidas (\texttt{/home}, \texttt{/perfil}) através de um \textit{wrapper} \texttt{ProtectedRoute} que consulta o token salvo em \texttt{localStorage};
+    \item \textbf{Consumo de API}: \texttt{frontend/src/libs/api.ts} encapsula chamadas HTTP com \texttt{fetch}, centralizando headers, serialização JSON e anexando o token JWT quando necessário;
+    \item \textbf{Persistência cliente}: \texttt{frontend/src/libs/auth.ts} salva, recupera e invalida o token JWT no \texttt{localStorage}, suportando a experiência de sessão.
+\end{itemize}
+
+\subsection{Camada de Serviços (Back-end)}
+\begin{itemize}
+    \item \textbf{Tecnologias}: Flask 3, Flask-CORS, PyJWT, python-dotenv e mysql-connector-python;
+    \item \textbf{Estrutura de código}: \texttt{backend/app.py} concentra as rotas REST (\texttt{/auth/login}, \texttt{/auth/register}, \texttt{/auth/update}, \texttt{/auth/me} e \texttt{/health});
+    \item \textbf{Autenticação}: tokens JWT são gerados em \texttt{generate\_token()} com expiração de 8 horas e validados em cada requisição protegida via \texttt{get\_auth\_user\_from\_header()};
+    \item \textbf{Banco de dados}: \texttt{backend/db.py} inicializa um pool de conexões MySQL reutilizável, evitando overhead de conexões e expondo a função \texttt{get\_conn()};
+    \item \textbf{Cross-Origin}: Flask-CORS libera o front-end (origem configurável via variável \texttt{FRONT\_ORIGIN}) para consumir a API durante o desenvolvimento.
+\end{itemize}
+
+\subsection{Fluxo de Autenticação}
+\begin{enumerate}
+    \item O usuário realiza cadastro ou login pelo front-end;
+    \item O front-end envia as credenciais para o back-end via \texttt{api.auth.login()} ou \texttt{api.auth.register()};
+    \item O back-end valida os dados, gera um JWT e retorna \texttt{\{ token, user \}};
+    \item O token é salvo em \texttt{localStorage} (\texttt{saveToken}) e utilizado em requisições subsequentes com header \texttt{Authorization: Bearer <token>};
+    \item A rota protegida \texttt{/auth/me} confirma os dados do usuário autenticado, garantindo sincronização da sessão.
+\end{enumerate}
+
+\section{Procedimentos de Desenvolvimento}
+
+\subsection{Front-end}
+\begin{enumerate}
+    \item Instalar o Node.js 18 ou superior (\texttt{npm} acompanha a instalação);
+    \item Executar \texttt{cd frontend};
+    \item Instalar dependências: \texttt{npm install};
+    \item Definir a URL da API criando um arquivo \texttt{.env} (ver Seção~\ref{sec:variables});
+    \item Subir o servidor de desenvolvimento: \texttt{npm run dev} (o Vite expõe a aplicação em \texttt{http://localhost:5173});
+    \item Opcional: rodar o lint para checar padrões de código (\texttt{npm run lint}).
+\end{enumerate}
+
+\subsection{Back-end}
+\begin{enumerate}
+    \item Instalar Python 3.11 ou superior e um servidor MySQL acessível;
+    \item Executar \texttt{cd backend};
+    \item Criar e ativar um ambiente virtual: \texttt{python -m venv venv} e, em seguida, \texttt{source venv/bin/activate} (Linux/macOS) ou \texttt{venv\textbackslash Scripts\textbackslash activate} (Windows);
+    \item Instalar dependências: \texttt{pip install -r requirements.txt};
+    \item Configurar as variáveis de ambiente em um arquivo \texttt{.env} (ver Seção~\ref{sec:variables});
+    \item Garantir que o schema do banco exista (banco \texttt{gymLeague} com tabela \texttt{Usuario});
+    \item Iniciar a API: \texttt{flask --app app run} ou \texttt{python app.py} (porta padrão 5000);
+    \item Opcional: acionar o endpoint \texttt{/health} para validar se o serviço está respondendo.
+\end{enumerate}
+
+\section{Variáveis de Ambiente}
+\label{sec:variables}
+
+\subsection{Front-end}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|p{8cm}|l|}
+        \hline
+        \textbf{Variável} & \textbf{Descrição} & \textbf{Padrão} \\
+        \hline
+        \texttt{VITE\_API\_URL} & URL base da API consumida pelo front-end. Necessária para apontar para ambientes locais ou remotos. & \texttt{http://localhost:5000} \\
+        \hline
+    \end{tabular}
+    \caption{Variável de ambiente utilizada pelo front-end}
+\end{table}
+
+\subsection{Back-end}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|p{8cm}|l|}
+        \hline
+        \textbf{Variável} & \textbf{Descrição} & \textbf{Padrão} \\
+        \hline
+        \texttt{SECRET\_KEY} & Chave secreta usada para assinar tokens JWT. & \texttt{dev-secret} \\
+        \hline
+        \texttt{FRONT\_ORIGIN} & Origem autorizada pelo CORS para consumir a API. & \texttt{http://localhost:5173} \\
+        \hline
+        \texttt{FLASK\_RUN\_PORT} & Porta utilizada pelo servidor Flask quando executado diretamente. & \texttt{5000} \\
+        \hline
+        \texttt{FLASK\_DEBUG} & Indicador de modo debug (0 desativa, 1 ativa). & \texttt{1} \\
+        \hline
+        \texttt{DB\_HOST} & Host do banco MySQL. & \texttt{localhost} \\
+        \hline
+        \texttt{DB\_PORT} & Porta do banco MySQL. & \texttt{3306} \\
+        \hline
+        \texttt{DB\_USER} & Usuário com permissão de acesso ao banco. & \texttt{root} \\
+        \hline
+        \texttt{DB\_PASSWORD} & Senha do usuário de banco. & \texttt{root} \\
+        \hline
+        \texttt{DB\_NAME} & Nome do schema utilizado pela aplicação. & \texttt{gymLeague} \\
+        \hline
+    \end{tabular}
+    \caption{Variáveis de ambiente utilizadas pelo back-end}
+\end{table}
+
+Todas as variáveis podem ser definidas em arquivos \texttt{.env} localizados nos diretórios \texttt{frontend/} e \texttt{backend/}, sendo carregadas automaticamente por Vite e \texttt{python-dotenv}, respectivamente.
