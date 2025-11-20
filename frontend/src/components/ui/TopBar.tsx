@@ -12,7 +12,7 @@ type TopBarProps = {
 
 export default function TopBar({ user, onLogout }: TopBarProps) {
   return (
-    <div className="p-4 bg-blue-600 text-white flex justify-between items-center">
+    <div className="p-4 bg-blue-600 text-white flex justify-between items-center fixed top-0 left-0 w-full z-10 shadow-md">
       
       <nav className="flex gap-6 text-white text-xl">
 

@@ -11,6 +11,8 @@ import FichasPersonalizadasCard from "../components/home/cardsPaginas/FichasPers
 import MinhaEvolucaoCard from "../components/home/cardsPaginas/MinhaEvolucaoCard";
 import MinhasFichasCard from "../components/home/cardsPaginas/MinhasFichasCard";
 import RelatorioCard from "../components/home/cardsPaginas/RelatorioCard";
+import Footer from "../components/ui/Footer";
+
 
 export type User = {
   pNome: string;
@@ -44,7 +46,7 @@ export default function Home() {
 
 
   return (
-    <div>
+    <div  className="pt-20">
       {/* Componente da topbar*/}
       <TopBar user={user} onLogout={handleLogout} />
       
@@ -102,7 +104,7 @@ export default function Home() {
       </div>
 
 
-      
+      <Footer />
     </div>
   );
 }
