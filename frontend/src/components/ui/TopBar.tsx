@@ -4,6 +4,9 @@ import { BiNotepad } from "react-icons/bi";
 import { FaChartLine } from "react-icons/fa";       
 import { FaRegClipboard } from "react-icons/fa";     
 import { FaCalendarAlt } from "react-icons/fa";     
+import { FaHome } from "react-icons/fa";
+
+import { useLocation } from "react-router-dom";
 
 type TopBarProps = {
   user: { pNome: string; email: string } | null;
@@ -11,25 +14,49 @@ type TopBarProps = {
 };
 
 export default function TopBar({ user, onLogout }: TopBarProps) {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  function isActive(path: string) {
+    return currentPath === path;
+  }
+
+  const activeIcon = "text-black"; 
+  const inactiveIcon = "text-white hover:text-gray-200";
+
   return (
     <div className="p-4 bg-blue-600 text-white flex justify-between items-center fixed top-0 left-0 w-full z-10 shadow-md">
-      
-      <nav className="flex gap-6 text-white text-xl">
 
-        <a href="/treinos" className="hover:text-gray-200">
-          <BiNotepad className="h-7 w-7" title="Meus Treinos" />
+      <nav className="flex gap-6 text-xl">
+        
+        <a href="/home">
+          <FaHome 
+            className={`h-7 w-7 ${isActive("/home") ? activeIcon : inactiveIcon}`}
+          />
         </a>
 
-        <a href="/evolucao" className="hover:text-gray-200">
-          <FaChartLine className="h-7 w-7" title="Evolução" />
+        <a href="/meus-treinos">
+          <BiNotepad 
+            className={`h-7 w-7 ${isActive("/meus-treinos") ? activeIcon : inactiveIcon}`}
+          />
         </a>
 
-        <a href="/fichas" className="hover:text-gray-200">
-          <FaRegClipboard className="h-7 w-7" title="Fichas Personalizadas" />
+        <a href="/evolucao">
+          <FaChartLine 
+            className={`h-7 w-7 ${isActive("/evolucao") ? activeIcon : inactiveIcon}`}
+          />
         </a>
 
-        <a href="/calendario" className="hover:text-gray-200">
-          <FaCalendarAlt className="h-7 w-7" title="Calendário" />
+        <a href="/fichas">
+          <FaRegClipboard 
+            className={`h-7 w-7 ${isActive("/fichas") ? activeIcon : inactiveIcon}`}
+          />
+        </a>
+
+        <a href="/calendario">
+          <FaCalendarAlt 
+            className={`h-7 w-7 ${isActive("/calendario") ? activeIcon : inactiveIcon}`}
+          />
         </a>
 
       </nav>
@@ -41,10 +68,7 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
           <FaUser className="h-6 w-6" />
         </a>
 
-        <button 
-          onClick={onLogout} 
-          className="pl-4 cursor-pointer hover:text-gray-300"
-        >
+        <button onClick={onLogout} className="pl-4 cursor-pointer hover:text-gray-300">
           <IoLogOut className="h-6 w-6" />
         </button>
       </div>
