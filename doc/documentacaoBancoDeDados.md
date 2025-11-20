@@ -95,3 +95,135 @@ Abaixo está a documentação detalhada de todas as tabelas, seus atributos, cha
 - (**fkNomeTreino**, **fkEmail_CriadorTreino**) → **Treino(nome, fEmail_usuarioCriador)** (*ON DELETE CASCADE*)
 
 ---
+
+## *Tabela: TreinoRotina*
+*Descrição:* Liga treinos a rotinas.
+
+*Atributos:*
+- *fkEmail_CriadorTreino* (VARCHAR(100))
+- *fkNomeTreino* (VARCHAR(100))
+- *fkEmail_CriadorRotina* (VARCHAR(100))
+- *fkNomeRotina* (VARCHAR(100))
+
+*Chave Primária:*
+- (*fkEmail_CriadorTreino, **fkNomeTreino, **fkEmail_CriadorRotina, **fkNomeRotina*)
+
+*Chaves Estrangeiras:*
+- (*fkEmail_CriadorTreino, **fkNomeTreino) → **Treino(fEmail_usuarioCriador, nome)*
+- (*fkEmail_CriadorRotina, **fkNomeRotina) → **Rotina(fEmail_usuarioCriador, nome)*
+
+---
+
+## *Tabela: Exercicio*
+*Descrição:* Catálogo de exercícios disponíveis.
+
+*Atributos:*
+- *nome* (VARCHAR(100)) — PRIMARY KEY
+
+---
+
+## *Tabela: TreinoExercicio*
+*Descrição:* Liga exercícios a treinos e define número de séries e descrição.
+
+*Atributos:*
+- *num_Series* (INT) — > 0.
+- *descricao* (VARCHAR(100)) — Descrição.
+- *fkEmail_CriadorTreino* (VARCHAR(100))
+- *fkNomeTreino* (VARCHAR(100))
+- *fkNomeExercicio* (VARCHAR(100))
+
+*Chave Primária:*
+- (*fkNomeTreino, **fkEmail_CriadorTreino, **fkNomeExercicio*)
+
+*Chaves Estrangeiras:*
+- (*fkNomeTreino, **fkEmail_CriadorTreino) → **Treino(nome, fEmail_usuarioCriador)*
+- *fkNomeExercicio* → *Exercicio(nome)*
+
+*Restrições:*
+- num_Series deve ser maior que 0.
+
+---
+
+## *Tabela: GrupoMuscular*
+*Descrição:* Lista grupos musculares.
+
+*Atributos:*
+- *nome* (VARCHAR(100)) — PRIMARY KEY
+- *ranking* (VARCHAR(50)) — Ranking do grupo. Padrão: "Cobre I".
+
+---
+
+## *Tabela: Musculo*
+*Descrição:* Lista músculos e os associa a grupos musculares.
+
+*Atributos:*
+- *nome* (VARCHAR(100)) — PRIMARY KEY
+- *ranking* (VARCHAR(50)) — Ranking. Padrão: "Cobre I".
+- *fk_nomeGrupoMuscular* (VARCHAR(100)) — Grupo muscular.
+
+*Chave Estrangeira:*
+- *fk_nomeGrupoMuscular* → *GrupoMuscular(nome)*
+
+---
+
+## *Tabela: ExercicioMusculo*
+*Descrição:* Liga exercícios aos músculos trabalhados.
+
+*Atributos:*
+- *fk_nomeExercicio* (VARCHAR(100))
+- *fk_nomeMusculo* (VARCHAR(100))
+
+*Chave Primária:*
+- (*fk_nomeExercicio, **fk_nomeMusculo*)
+
+*Chaves Estrangeiras:*
+- *fk_nomeExercicio* → *Exercicio(nome)*
+- *fk_nomeMusculo* → *Musculo(nome)*
+
+---
+
+## *Tabela: Serie*
+*Descrição:* Registra séries realizadas em treinos.
+
+*Atributos:*
+- *numero* (INT) — Número identificador da série.
+- *detalhe* (VARCHAR(100)) — Descrição opcional.
+- *repeticoes* (INT) — não nulo, >= 0.
+- *carga* (FLOAT) — não nulo, >= 0.
+- *fk_nomeExercicio* (VARCHAR(100)) — Exercício usado.
+- *fkNomeTreino* (VARCHAR(100)) — Treino.
+- *fkEmail_CriadorTreino* (VARCHAR(100)) — Criador do treino.
+- *fEmail_UsuarioTreino* (VARCHAR(100)) — Usuário que treinou.
+- *fk_dataDoTreino* (DATE) — Data do treino.
+- *fk_tituloMeta* (VARCHAR(100)) — Meta vinculada.
+
+*Chave Primária:*
+- (*numero, **fk_nomeExercicio, **fkNomeTreino, **fkEmail_CriadorTreino, **fEmail_UsuarioTreino, **fk_dataDoTreino*)
+
+*Chaves Estrangeiras:*
+- (*fk_tituloMeta, **fEmail_UsuarioTreino) → **Metas(titulo, fk_emailUsuario)*
+- *fk_nomeExercicio* → *Exercicio(nome)*
+- (*fkNomeTreino, **fkEmail_CriadorTreino, **fEmail_UsuarioTreino, **fk_dataDoTreino) → **UsuarioTreino*
+
+*Restrições:*
+- Repetições e carga devem ser >= 0.
+
+---
+
+## *Tabela: ExercicioMetaSerie*
+*Descrição:* Relaciona metas com exercícios e séries concluídas.
+
+*Atributos:*
+- *dataConclusao* (DATE) — Data de conclusão.
+- *descricao* (VARCHAR(100)) — Detalhes.
+- *fk_tituloMeta* (VARCHAR(100))
+- *fk_nomeExercicio* (VARCHAR(100))
+- *fk_numeroSerie* (INT)
+
+*Chave Primária:*
+- (*fk_tituloMeta, **fk_nomeExercicio, **fk_numeroSerie*)
+
+*Chaves Estrangeiras:*
+- *fk_tituloMeta* → *Metas(titulo)*
+- *fk_nomeExercicio* → *Exercicio(nome)*
+- *fk_numeroSerie* → *Serie(numero)*
