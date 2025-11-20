@@ -9,13 +9,13 @@ export default function MinhasFichasCard() {
       title="Minhas Fichas"
       icon={<BiNotepad size={45} />}
       buttonLabel="Ver fichas"
-      buttonLink="/fichas"
+      buttonLink="/meus-treinos"
     >
       <div className="flex flex-col gap-2">
         
-        <DashboardListItem label="Treino A – Hipertrofia" link="/fichas/a" />
-        <DashboardListItem label="Treino B – Costas e Bíceps" link="/fichas/b" />
-        <DashboardListItem label="Treino C – Pernas" link="/fichas/c" />
+        <DashboardListItem label="Treino A – Hipertrofia" link="/meus-treinos/a" />
+        <DashboardListItem label="Treino B – Costas e Bíceps" link="/meus-treinos/b" />
+        <DashboardListItem label="Treino C – Pernas" link="/meus-treinos/c" />
 
         {/* TODO: mapear user.fichas quando tiver backend */}
       </div>

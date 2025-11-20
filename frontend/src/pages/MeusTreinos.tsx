@@ -5,12 +5,8 @@ import TopBar from "../components/ui/TopBar";
 import CardMetaAtual from "../components/home/MetaAtualCard";
 import CardPesoAtual from "../components/home/PesoAtualCard";
 import CardRankingGeral from "../components/home/RankingGeralCard";
-import FichasPersonalizadasCard from "../components/home/cardsPaginas/FichasPersonalizadasCard";
-import MinhaEvolucaoCard from "../components/home/cardsPaginas/MinhaEvolucaoCard";
-import MinhasFichasCard from "../components/home/cardsPaginas/MinhasFichasCard";
-import RelatorioCard from "../components/home/cardsPaginas/RelatorioCard";
-import Footer from "../components/ui/Footer";
 import GreetingsCard from "../components/home/GreetingsCard";
+import Footer from "../components/ui/Footer";
 
 import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
@@ -19,9 +15,9 @@ import PrivateRoute from "../components/auth/PrivateRoute";
 export type User = {
   pNome: string;
   email: string;
-}
+};
 
-export default function Home() {
+export default function CriarTreinosPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
 
@@ -31,34 +27,37 @@ export default function Home() {
   }
 
   useEffect(() => {
-    api.auth.me().then((data) => setUser(data));
+    api.auth.me()
+      .then((data) => setUser(data))
+      .catch(() => {
+        clearToken();
+        navigate("/", { replace: true });
+      });
   }, []);
 
   return (
     <PrivateRoute>
-      <div className="pt-20">
-        {/* Top Bar */}
-        <TopBar user={user} onLogout={handleLogout} />
+      <div className="min-h-screen flex flex-col bg-gray-100 pt-20">
+        
+        {/* Top Bar fixa */}
+        <div className="fixed top-0 left-0 w-full z-50">
+          <TopBar user={user} onLogout={handleLogout} />
+        </div>
 
-        {/* Boas-Vindas */}
+        {/* Saudação */}
         <GreetingsCard user={user} />
 
-        {/* Meta Atual */}
-        <CardMetaAtual />
+        {/* Conteúdo principal */}
+        <div className="p-4 flex flex-col gap-4">
 
-        {/* Peso e Ranking */}
-        <div className="p-4">
-          <div className="grid grid-cols-2 gap-6">
+          <CardMetaAtual />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CardPesoAtual />
             <CardRankingGeral />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-          <MinhasFichasCard />
-          <MinhaEvolucaoCard />
-          <FichasPersonalizadasCard />
-          <RelatorioCard />
+          
         </div>
 
         <Footer />
