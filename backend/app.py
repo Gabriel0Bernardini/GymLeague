@@ -40,7 +40,7 @@ def decode_token(token: str):
 def get_auth_user_from_header():
     """
     Lê o header Authorization: Bearer <token>,
-    valida o token e retorna o usuário (id, username, name) do banco.
+    valida o token e retorna o usuário (email, pNome) do banco.
     """
     auth_header = request.headers.get("Authorization", "")
     parts = auth_header.split()
