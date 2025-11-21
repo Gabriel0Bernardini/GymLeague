@@ -30,16 +30,19 @@ def generate_token(user_row):
       - iat (emitido agora)
     """
     
-    dataNascimento = datetime.date(user_row["dataNascimento"])
+    dataNascimento = user_row["dataNascimento"]
     hoje = date.today()
-    idade = hoje.year - dataNascimento.year - ((hoje.month, hoje.day) < (dataNascimento.month, dataNascimento.day))
+    if dataNascimento:
+        idade = hoje.year - dataNascimento.year - ((hoje.month, hoje.day) < (dataNascimento.month, dataNascimento.day))
+    else:
+        idade = None
     
     payload = {
         "sub": str(user_row["email"]),
         "nome": str(user_row["pNome"]),
-        "peso": float(user_row["peso"]),
-        "altura": float(user_row["altura"]),
-        "percentual_gordura": float(user_row["percentual_gordura"]),
+        "peso": (user_row["peso"]),
+        "altura": (user_row["altura"]),
+        "percentual_gordura": (user_row["percentual_gordura"]),
         "idade": idade,
         "exp": datetime.utcnow() + timedelta(hours=8),
         "iat": datetime.utcnow(),
@@ -162,6 +165,7 @@ def register():
     if not email or not nome or not senha:
         return jsonify({"code": "BAD_REQUEST", "message": "Email, nome e senha são obrigatórios"}), 400
 
+    user = None
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
     try:
@@ -179,6 +183,12 @@ def register():
             (email, nome, senha)
         )
         conn.commit()
+        SQL = "SELECT * FROM Usuario WHERE email = %s"
+        cur.execute(
+            SQL,
+            (email,)
+        )
+        user = cur.fetchone()
     except Exception:
         conn.rollback()
         return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao cadastrar usuário"}), 500
@@ -186,7 +196,7 @@ def register():
         cur.close()
         conn.close()
 
-    token = generate_token({"email": email, "pNome": nome})
+    token = generate_token(user)
 
     return jsonify({
         "token": token,
