@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -22,12 +22,25 @@ def generate_token(user_row):
     Gera um JWT contendo:
       - sub (email do usuário)
       - nome do usuario
+      - peso do usuario
+      - altura do usuario
+      - percentual de gordura do usuario
+      - idade do usuario
       - exp (expira em 8h)
       - iat (emitido agora)
     """
+    
+    dataNascimento = datetime.date(user_row["dataNascimento"])
+    hoje = date.today()
+    idade = hoje.year - dataNascimento.year - ((hoje.month, hoje.day) < (dataNascimento.month, dataNascimento.day))
+    
     payload = {
         "sub": str(user_row["email"]),
         "nome": str(user_row["pNome"]),
+        "peso": float(user_row["peso"]),
+        "altura": float(user_row["altura"]),
+        "percentual_gordura": float(user_row["percentual_gordura"]),
+        "idade": idade,
         "exp": datetime.utcnow() + timedelta(hours=8),
         "iat": datetime.utcnow(),
     }
