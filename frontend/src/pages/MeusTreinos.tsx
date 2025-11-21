@@ -11,9 +11,7 @@ import GreetingsCard from "../components/home/GreetingsCard";
 import Footer from "../components/ui/Footer";
 import PrivateRoute from "../components/auth/PrivateRoute";
 import ListaDeFichas from "../components/treinos/ListaDeFichas";
-
-
-
+import ModalProgramaTreino from "../components/treinos/ModalProgramaTreino";
 
 
 export type User = {
@@ -25,11 +23,17 @@ export default function CriarTreinosPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
 
+
+  const [modalAberto, setModalAberto] = useState(false);
+
    {/* TO DO: ALTERAR ISSO E INTEGRAR COM O BANCO*/}
   const [fichas, setFichas] = useState([
     { id: 1, nome: "Ficha Personalizada 1" },
     { id: 2, nome: "Ficha de Eduardo" },
     { id: 3, nome: "Ficha Compartilhada do Personal Pedro" },
+    { id: 4, nome: "Ficha 4" },
+    { id: 5, nome: "Ficha 5" },
+    { id: 6, nome: "Ficha 6" },
     ]);
 
 
@@ -49,27 +53,22 @@ export default function CriarTreinosPage() {
 
   return (
     <PrivateRoute>
-      <div className="min-h-screen flex flex-col bg-gray-100 pt-20">
-        
-        {/* Top Bar fixa */}
-        <div className="fixed top-0 left-0 w-full z-50">
-          <TopBar user={user} onLogout={handleLogout} />
-        </div>
+      <div className="pt-20">
+        {/* Top Bar */}
+        <TopBar user={user} onLogout={handleLogout} />
 
-        {/* Saudação */}
+        {/* Boas-Vindas */}
         <GreetingsCard user={user} />
 
-        {/* Conteúdo principal */}
-        <div className="p-4 flex flex-col gap-4">
+        {/* Meta Atual */}
+        <CardMetaAtual />
 
-          <CardMetaAtual />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Peso e Ranking */}
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-6">
             <CardPesoAtual />
             <CardRankingGeral />
           </div>
-
-          
         </div>
 
         <ListaDeFichas
@@ -78,7 +77,12 @@ export default function CriarTreinosPage() {
         onExcluir={(id) => {
             setFichas(prev => prev.filter(f => f.id !== id));
         }}
-        onCriar={() => console.log("Criar nova ficha")}
+        onCriar={() => setModalAberto(true)}
+        />
+
+        <ModalProgramaTreino
+        aberto={modalAberto}
+        onClose={() => setModalAberto(false)}
         />
 
         <Footer />
