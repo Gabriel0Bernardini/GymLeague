@@ -180,28 +180,26 @@ Abaixo está a documentação detalhada de todas as tabelas, seus atributos, cha
 
 ## **Tabela: GrupoMuscular**
 
-**Descrição:** Lista grupos musculares.
+**Descrição:** Lista grupos musculares disponíveis de forma genérica.
 
 **Atributos:**
 
-* **nome** (VARCHAR(100)) — *PRIMARY KEY*
-* **ranking** (VARCHAR(50)) — Ranking do grupo. Padrão: "Cobre I".
+* **nome** (VARCHAR(100)) — *PRIMARY KEY*. Nome do grupo muscular.
 
 ---
 
 ## **Tabela: Musculo**
 
-**Descrição:** Lista músculos e os associa a grupos musculares.
+**Descrição:** Lista músculos e associa cada músculo a um grupo muscular.
 
 **Atributos:**
 
-* **nome** (VARCHAR(100)) — *PRIMARY KEY*
-* **ranking** (VARCHAR(50)) — Ranking. Padrão: "Cobre I".
-* **fk_nomeGrupoMuscular** (VARCHAR(100)) — Grupo muscular.
+* **nome** (VARCHAR(100)) — *PRIMARY KEY*. Nome do músculo.
+* **fk_nomeGrupoMuscular** (VARCHAR(100)) — Grupo muscular ao qual pertence.
 
 **Chave Estrangeira:**
 
-* **fk_nomeGrupoMuscular** → **GrupoMuscular(nome)**
+* **fk_nomeGrupoMuscular** → **GrupoMuscular(nome)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
 
 ---
 
@@ -301,3 +299,47 @@ Abaixo está a documentação detalhada de todas as tabelas, seus atributos, cha
 * **fkEmailUsuario** → **Usuario(email)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
 
 ---
+
+## **Tabela: RankingMusculo**
+
+**Descrição:** Armazena o ranking de cada músculo para cada usuário.
+
+**Atributos:**
+
+* **ranking** (VARCHAR(100)) — Nível de ranking atribuído ao músculo pelo usuário.
+* **f_emailUsuario** (VARCHAR(100)) — Email do usuário.
+* **f_nomeMusculo** (VARCHAR(100)) — Nome do músculo.
+
+**Chave Primária:**
+
+* (**f_emailUsuario**, **f_nomeMusculo**)
+
+**Chaves Estrangeiras:**
+
+* **f_emailUsuario** → **Usuario(email)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
+* **f_nomeMusculo** → **Musculo(nome)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
+
+---
+
+## **Tabela: RankingGrupoMuscular**
+
+**Descrição:** Armazena o ranking de cada grupo muscular para cada usuário.
+
+**Atributos:**
+
+* **ranking** (VARCHAR(100)) — Nível de ranking atribuído ao grupo pelo usuário.
+* **f_emailUsuario** (VARCHAR(100)) — Email do usuário.
+* **f_nomeGrupo** (VARCHAR(100)) — Nome do grupo muscular.
+
+**Chave Primária:**
+
+* (**f_emailUsuario**, **f_nomeGrupo**)
+
+**Chaves Estrangeiras:**
+
+* **f_emailUsuario** → **Usuario(email)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
+* **f_nomeGrupo** → **GrupoMuscular(nome)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
+
+---
+
+Fim da documentação.

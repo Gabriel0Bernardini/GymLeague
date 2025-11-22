@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import MeusTreinos from "./pages/MeusTreinos";
+import ExplorarRotinas from "./pages/ExplorarRotinas";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   return isAuthenticated() ? children : <Navigate to="/" replace />;
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
         <Route path="/meus-treinos" element={<ProtectedRoute><MeusTreinos /></ProtectedRoute>} />
+        <Route path="/explorar-rotinas" element={<ProtectedRoute><ExplorarRotinas/></ProtectedRoute>}/>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

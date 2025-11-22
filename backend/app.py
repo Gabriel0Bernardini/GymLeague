@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from routes.auth import auth_bp
 from routes.users import users_bp
+from routes.rotina_routes import rotinas_bp
 
 load_dotenv()
 
@@ -16,6 +17,7 @@ CORS(app, origins=[FRONT_ORIGIN])
 # registra blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(users_bp)
+app.register_blueprint(rotinas_bp)
 
 @app.get("/health")
 def health():
