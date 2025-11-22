@@ -27,14 +27,7 @@ export default function CriarTreinosPage() {
   const [modalAberto, setModalAberto] = useState(false);
 
    {/* TO DO: ALTERAR ISSO E INTEGRAR COM O BANCO*/}
-  const [fichas, setFichas] = useState([
-    { id: 1, nome: "Ficha Personalizada 1" },
-    { id: 2, nome: "Ficha de Eduardo" },
-    { id: 3, nome: "Ficha Compartilhada do Personal Pedro" },
-    { id: 4, nome: "Ficha 4" },
-    { id: 5, nome: "Ficha 5" },
-    { id: 6, nome: "Ficha 6" },
-    ]);
+  const [fichas, setFichas] = useState<{id: number, nome: string}[]>([]);
 
 
   function handleLogout() {
@@ -43,13 +36,22 @@ export default function CriarTreinosPage() {
   }
 
   useEffect(() => {
-    api.auth.me()
-      .then((data) => setUser(data))
-      .catch(() => {
-        clearToken();
-        navigate("/", { replace: true });
-      });
-  }, []);
+  api.auth.me()
+    .then((data) => {
+      setUser(data);
+
+      // buscar fichas reais
+      return api.rotinas.listar();
+    })
+    .then((lista) => {
+      setFichas(lista);
+    })
+    .catch(() => {
+      clearToken();
+      navigate("/", { replace: true });
+    });
+}, []);
+
 
   return (
     <PrivateRoute>
