@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 from routes.auth import auth_bp
 from routes.users import users_bp
 from routes.rotina_routes import rotinas_bp
+from routes.exercicios_routes import exercicios_bp
+from routes.grupos_routes import grupos_bp
+from routes.musculos_routes import musculos_bp
 
 load_dotenv()
 
@@ -18,6 +21,9 @@ CORS(app, origins=[FRONT_ORIGIN])
 app.register_blueprint(auth_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(rotinas_bp)
+app.register_blueprint(exercicios_bp)
+app.register_blueprint(grupos_bp)
+app.register_blueprint(musculos_bp)
 
 @app.get("/health")
 def health():
