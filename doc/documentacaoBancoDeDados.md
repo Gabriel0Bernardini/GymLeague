@@ -339,7 +339,3 @@ Abaixo está a documentação detalhada de todas as tabelas, seus atributos, cha
 
 * **f_emailUsuario** → **Usuario(email)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
 * **f_nomeGrupo** → **GrupoMuscular(nome)** (*ON DELETE CASCADE, ON UPDATE CASCADE*)
-
----
-
-Fim da documentação.
