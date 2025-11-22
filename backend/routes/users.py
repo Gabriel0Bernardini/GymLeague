@@ -25,7 +25,7 @@ def get_user(email):
     cur.close()
     conn.close()
     if not user:
-        return jsonify({"code": "NOT_FOUND", "message": "Usuário não encontrado"}), 404
+        return jsonify({"code": "NOT_FOUaND", "message": "Usuário não encontrado"}), 404
     return jsonify(user), 200
 
 @users_bp.post("/")

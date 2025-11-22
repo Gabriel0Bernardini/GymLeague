@@ -51,6 +51,7 @@ def require_auth(fn):
         return fn(*args, **kwargs)
     return wrapper
 
+''' Versao ainda nao funcional
 def get_auth_user_from_header():
     auth_header = request.headers.get("Authorization", "")
     parts = auth_header.split()
@@ -78,3 +79,4 @@ def get_auth_user_from_header():
             return None
 
     return None
+'''
