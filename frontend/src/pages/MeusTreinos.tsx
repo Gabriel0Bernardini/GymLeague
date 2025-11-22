@@ -1,3 +1,4 @@
+// src/pages/MeusTreinos.tsx (ou CriarTreinosPage.tsx dependendo do seu nome)
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearToken } from "../libs/auth";
@@ -13,22 +14,17 @@ import PrivateRoute from "../components/auth/PrivateRoute";
 import ListaDeFichas from "../components/treinos/ListaDeFichas";
 import ModalProgramaTreino from "../components/treinos/ModalProgramaTreino";
 
-
 export type User = {
   pNome: string;
   email: string;
 };
 
-export default function CriarTreinosPage() {
+export default function MeusTreinos() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
 
-
   const [modalAberto, setModalAberto] = useState(false);
-
-   {/* TO DO: ALTERAR ISSO E INTEGRAR COM O BANCO*/}
-  const [fichas, setFichas] = useState<{id: number, nome: string}[]>([]);
-
+  const [fichas, setFichas] = useState<{ id: number; nome: string }[]>([]);
 
   function handleLogout() {
     clearToken();
@@ -36,36 +32,29 @@ export default function CriarTreinosPage() {
   }
 
   useEffect(() => {
-  api.auth.me()
-    .then((data) => {
-      setUser(data);
-
-      // buscar fichas reais
-      return api.rotinas.listar();
-    })
-    .then((lista) => {
-      setFichas(lista);
-    })
-    .catch(() => {
-      clearToken();
-      navigate("/", { replace: true });
-    });
-}, []);
-
+    api.auth.me()
+      .then((data) => {
+        setUser(data);
+        // buscar fichas (rotinas) do usuário
+        return api.rotinas.listar();
+      })
+      .then((lista) => {
+        // espera que lista seja array de { id, nome } ou adapte
+        setFichas(Array.isArray(lista) ? lista : []);
+      })
+      .catch(() => {
+        clearToken();
+        navigate("/", { replace: true });
+      });
+  }, []);
 
   return (
     <PrivateRoute>
       <div className="pt-20">
-        {/* Top Bar */}
         <TopBar user={user} onLogout={handleLogout} />
-
-        {/* Boas-Vindas */}
         <GreetingsCard user={user} />
-
-        {/* Meta Atual */}
         <CardMetaAtual />
 
-        {/* Peso e Ranking */}
         <div className="p-4">
           <div className="grid grid-cols-2 gap-6">
             <CardPesoAtual />
@@ -74,17 +63,25 @@ export default function CriarTreinosPage() {
         </div>
 
         <ListaDeFichas
-        fichas={fichas}
-        onAbrir={(id) => console.log("Abrir ficha", id)}
-        onExcluir={(id) => {
-            setFichas(prev => prev.filter(f => f.id !== id));
-        }}
-        onCriar={() => setModalAberto(true)}
+          fichas={fichas}
+          onAbrir={(id) => console.log("Abrir ficha", id)}
+          onExcluir={(id) => setFichas(prev => prev.filter(f => f.id !== id))}
+          onCriar={() => setModalAberto(true)}
         />
 
         <ModalProgramaTreino
-        aberto={modalAberto}
-        onClose={() => setModalAberto(false)}
+          aberto={modalAberto}
+          onClose={() => setModalAberto(false)}
+          onSalvar={({ nomePrograma, fichas: fichasDoPrograma }) => {
+            // Exemplo de integração: adaptar payload ao seu endpoint
+            api.rotinas.criar?.({ nome: nomePrograma, fichas: fichasDoPrograma })
+              .then(() => {
+                // atualizar lista local (recarregar)
+                return api.rotinas.listar();
+              })
+              .then((lista) => setFichas(Array.isArray(lista) ? lista : []))
+              .catch(err => console.error("Erro ao salvar rotina", err));
+          }}
         />
 
         <Footer />

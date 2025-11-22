@@ -1,5 +1,5 @@
+// src/components/treinos/ListaDeFichas.tsx
 import { FaTrash, FaFolderOpen } from "react-icons/fa";
-import Button from "../ui/Button";
 
 type Ficha = {
   id: number;
@@ -23,13 +23,9 @@ export default function ListaDeFichas({
     <div className="p-4">
       <div className="bg-gray-200 p-4 rounded shadow-md mt-6">
 
-        {/* Título */}
         <h2 className="text-xl font-bold mb-2">Minhas Fichas</h2>
-
-        {/* Subtítulo */}
         <p className="text-sm text-gray-600 mb-3">Acesse suas fichas de treino</p>
 
-        {/* Lista com scroll após 4 itens */}
         <div className="bg-gray-300 rounded p-2 max-h-[240px] overflow-y-auto">
 
           {fichas.length === 0 ? (
@@ -45,8 +41,6 @@ export default function ListaDeFichas({
                 <span className="font-semibold">{ficha.nome}</span>
 
                 <div className="flex gap-3 items-center">
-
-                  {/* Abrir */}
                   <button
                     onClick={() => onAbrir(ficha.id)}
                     className="hover:text-blue-600 transition-colors"
@@ -55,7 +49,6 @@ export default function ListaDeFichas({
                     <FaFolderOpen size={20} />
                   </button>
 
-                  {/* Excluir */}
                   <button
                     onClick={() => onExcluir(ficha.id)}
                     className="hover:text-red-600 transition-colors"
@@ -63,7 +56,6 @@ export default function ListaDeFichas({
                   >
                     <FaTrash size={20} />
                   </button>
-
                 </div>
               </div>
             ))
@@ -71,11 +63,13 @@ export default function ListaDeFichas({
 
         </div>
 
-        {/* Botão Criar Nova */}
         <div className="flex justify-center mt-6">
-          <Button variant="blue" onClick={onCriar}>
-            Adicionar Nova Ficha
-          </Button>
+          <button
+            className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
+            onClick={onCriar}
+          >
+            Criar Nova Ficha
+          </button>
         </div>
 
       </div>

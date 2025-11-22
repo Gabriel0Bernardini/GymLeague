@@ -2,6 +2,12 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 type Options = RequestInit & { auth?: boolean };
 
+/**
+ * Função genérica de requisição HTTP.
+ * -path: endpoint da API (ex: "/auth/login")
+ * -opts: método, headers, body, etc.
+ * -retorna o tipo genérico <T> vindo da resposta (ex: LoginResponseDTO)
+ */
 async function request<T>(
   path: string,
   { auth, headers, ...opts }: Options = {}
@@ -34,6 +40,7 @@ async function request<T>(
   return data as T;
 }
 
+
 export const api = {
   auth: {
     login: (payload: import("../type/dto").LoginRequestDTO) =>
@@ -41,14 +48,14 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
-
+    
     register: (payload: import("../type/dto").RegisterRequestDTO) =>
       request<import("../type/dto").RegisterResponseDTO>("/auth/register", {
         method: "POST",
         body: JSON.stringify(payload),
-      }),
+      }),  
 
-    update: (payload: import("../type/dto").UpdateRequest) =>
+    update: (payload:  import("../type/dto").UpdateRequest) =>
       request<import("../type/dto").UpdateResponseDTO>("/auth/update", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -65,5 +72,25 @@ export const api = {
       request<{ id: number; nome: string }[]>("/rotinas/", {
         auth: true,
       }),
+    criar: (payload: any) =>
+      request("/rotinas/", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),
   },
+
+  exercicios: {
+    listar: () => request("/exercicios/", { auth: true }),
+  },
+
+  gruposMusculares: {
+    listar: () => request("/grupos-musculares/", { auth: true }),
+  },
+
+  musculos: {
+    listarPorGrupo: (grupo: string) =>
+      request(`/musculos/${grupo}`, { auth: true }),
+  },
+  
 };
