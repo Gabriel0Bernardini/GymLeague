@@ -8,7 +8,7 @@ export default function FichasPersonalizadasCard() {
       title="Fichas Personalizadas"
       icon={ <FaRegClipboard size={40} /> }
       buttonLabel="Ver personalizadas"
-      buttonLink="/personalizadas"
+      buttonLink="/explorar-rotinas"
     >
       <div className="flex flex-col gap-2">
               
