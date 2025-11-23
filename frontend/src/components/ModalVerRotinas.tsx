@@ -2,26 +2,21 @@ import { FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useState } from "react";
 
 export type Exercicio = {
-    id: number;
     nome: string;
     series: number;
-    repeticoes: number;
-    carga: string;
     descricao?: string;
 };
 
 export type Treino = {
-    id:number;
     nome: string;
     exercicios: Exercicio[];
 };
 
 export type Rotina = {
-    id:number;
     nome: string;
-    treinos: Treino[];
     criadorEmail: string;
     criadorNome: string;
+    treinos: Treino[];
 };
 
 type Props = {
@@ -55,16 +50,16 @@ export default function ModalVerRotinas({aberto, onClose, rotina, adicionarRotin
 
                 {/*Treinos*/}
                 <div className="space-y-4">
-                    {rotina.treinos.map(t =>(
-                        <div key={t.id} className="border rounded-lg overflow-hidden">
-                            <button onClick={() => toggleTreino(t.id)}
+                    {rotina.treinos.map((t, indexTreino) =>(
+                        <div key={indexTreino} className="border rounded-lg overflow-hidden">
+                            <button onClick={() => toggleTreino(indexTreino)}
                                 className= "w-full flex justify-between items-center p-3 bg-gray-100 hover:bg-gray-200"
                             >
                                 <span className="font-bold">{t.nome}</span>
-                                {abertaId === t.id ? <FaChevronUp/> : <FaChevronDown/>}
+                                {abertaId === indexTreino ? <FaChevronUp/> : <FaChevronDown/>}
                             </button>
 
-                            {abertaId === t.id && (
+                            {abertaId === indexTreino && (
                                 <div className="p-3 bg-gray-50">
                                 {t.exercicios.length === 0 ? (
                                     <div className="text-center text-gray-500 p-4">
@@ -76,19 +71,15 @@ export default function ModalVerRotinas({aberto, onClose, rotina, adicionarRotin
                                         <tr>
                                         <th className="border p-2">Nome</th>
                                         <th className="border p-2">Séries</th>
-                                        <th className="border p-2">Repetições</th>
-                                        <th className="border p-2">Carga</th>
                                         <th className="border p-2">Descrição</th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
-                                        {t.exercicios.map(e => (
-                                        <tr key={e.id} className="border">
+                                        {t.exercicios.map((e, indexExercicio) => (
+                                        <tr key={indexExercicio} className="border">
                                             <td className="border p-2">{e.nome}</td>
                                             <td className="border p-2">{e.series}</td>
-                                            <td className="border p-2">{e.repeticoes}</td>
-                                            <td className="border p-2">{e.carga}</td>
                                             <td className="border p-2 text-sm">{e.descricao ?? "-"}</td>
                                         </tr>
                                         ))}
