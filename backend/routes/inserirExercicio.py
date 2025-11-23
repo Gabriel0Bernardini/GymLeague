@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from db import get_conn
 
-inserirExercicios_bp = Blueprint("inserirExercicios", __name__, url_prefix="inserirExercicio")
+inserirExercicios_bp = Blueprint("inserirExercicios", __name__, url_prefix="/inserirExercicio")
 
 @inserirExercicios_bp.get("/")
 def buscarMusculos():
@@ -26,11 +26,11 @@ def buscarMusculos():
         musculo = row["nomeMusculo"]
 
         if grupo not in gruposMusculares:
-            gruposMusculares[grupo] = {"nome": grupo}
+            gruposMusculares[grupo] = {"nomeGrupo": grupo}
 
         musculos.append({
             "nome": musculo,
-            "grupoMuscular": grupo
+            "grupoMuscular": {"nomeGrupo": grupo}
         })
 
     return jsonify({

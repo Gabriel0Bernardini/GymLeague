@@ -9,6 +9,7 @@ from routes.rotina_routes import rotinas_bp
 from routes.exercicios_routes import exercicios_bp
 from routes.grupos_routes import grupos_bp
 from routes.musculos_routes import musculos_bp
+from routes.inserirExercicio import inserirExercicios_bp
 
 load_dotenv()
 
@@ -24,6 +25,7 @@ app.register_blueprint(rotinas_bp)
 app.register_blueprint(exercicios_bp)
 app.register_blueprint(grupos_bp)
 app.register_blueprint(musculos_bp)
+app.register_blueprint(inserirExercicios_bp)
 
 @app.get("/health")
 def health():
