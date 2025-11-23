@@ -9,13 +9,20 @@ from routes.rotina_routes import rotinas_bp
 from routes.exercicios_routes import exercicios_bp
 from routes.grupos_routes import grupos_bp
 from routes.musculos_routes import musculos_bp
+from routes.explorarRotinas import explorarRotinas_bp
 
 load_dotenv()
 
 FRONT_ORIGIN = os.getenv("FRONT_ORIGIN", "http://localhost:5173")
 
 app = Flask(__name__)
-CORS(app, origins=[FRONT_ORIGIN])
+CORS(app, resources={r"/*": {
+    "origins": FRONT_ORIGIN,
+    "supports_credentials": True,
+    "allow_headers": ["Content-Type", "Authorization"],
+    "expose_headers": ["Content-Type", "Authorization"],
+    "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+}})
 
 # registra blueprints
 app.register_blueprint(auth_bp)
@@ -24,6 +31,7 @@ app.register_blueprint(rotinas_bp)
 app.register_blueprint(exercicios_bp)
 app.register_blueprint(grupos_bp)
 app.register_blueprint(musculos_bp)
+app.register_blueprint(explorarRotinas_bp)
 
 @app.get("/health")
 def health():

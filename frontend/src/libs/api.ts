@@ -1,4 +1,5 @@
 import type { Musculo, GrupoMuscular } from "../pages/InserirExercicio";
+import type { Rotina } from "../components/ModalVerRotinas";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
@@ -68,6 +69,10 @@ export const api = {
         auth: true,
       }),
   },
+
+  explorarRotinas: {
+        listar: () => request<{ rotinas: Rotina[] }>("/explorar-rotinas/", { auth: true }),
+    },
 
   rotinas: {
     listar: () =>

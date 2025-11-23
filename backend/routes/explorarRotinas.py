@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify
 from db import get_conn
 
-explorarRotinas_bp = Blueprint("explorarRotinas", __name__, url_prefix="/explorarRotinas")
+explorarRotinas_bp = Blueprint("explorar-rotinas", __name__, url_prefix="/explorar-rotinas")
 
-@explorarRotinas_bp.get("/")
+@explorarRotinas_bp.get("")
 def buscarRotinas_publicas():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
