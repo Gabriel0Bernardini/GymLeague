@@ -12,6 +12,15 @@ import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
 import PrivateRoute from "../components/auth/PrivateRoute";
 
+type GrupoMuscular = {
+  nomeGrupo: string
+}
+
+type Musculo = {
+  nome: string,
+  grupoMuscular: GrupoMuscular
+}
+
 export default function InserirExercicio() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
