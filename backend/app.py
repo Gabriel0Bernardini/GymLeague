@@ -16,13 +16,7 @@ load_dotenv()
 FRONT_ORIGIN = os.getenv("FRONT_ORIGIN", "http://localhost:5173")
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {
-    "origins": FRONT_ORIGIN,
-    "supports_credentials": True,
-    "allow_headers": ["Content-Type", "Authorization"],
-    "expose_headers": ["Content-Type", "Authorization"],
-    "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-}})
+CORS(app, origins=[FRONT_ORIGIN])
 
 # registra blueprints
 app.register_blueprint(auth_bp)
