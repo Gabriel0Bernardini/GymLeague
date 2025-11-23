@@ -5,6 +5,7 @@ import { FaChartLine } from "react-icons/fa";
 import { FaRegClipboard } from "react-icons/fa";     
 import { FaCalendarAlt } from "react-icons/fa";     
 import { FaHome } from "react-icons/fa";
+import { LuDumbbell } from "react-icons/lu";
 
 import { useLocation } from "react-router-dom";
 
@@ -47,9 +48,9 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
           />
         </a>
 
-        <a href="/fichas">
+        <a href="/explorar-rotinas">
           <FaRegClipboard 
-            className={`h-7 w-7 ${isActive("/fichas") ? activeIcon : inactiveIcon}`}
+            className={`h-7 w-7 ${isActive("/explorar-rotinas") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
@@ -59,6 +60,11 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
           />
         </a>
 
+        <a href="/inserir-exercicio">
+          <LuDumbbell 
+            className={`h-7 w-7 ${isActive("/inserir-exercicio") ? activeIcon : inactiveIcon}`}
+          />  
+        </a>
       </nav>
 
       <div className="flex items-center">
