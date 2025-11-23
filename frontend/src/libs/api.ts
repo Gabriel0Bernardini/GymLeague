@@ -1,3 +1,5 @@
+import type { Musculo, GrupoMuscular } from "../pages/InserirExercicio";
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 type Options = RequestInit & { auth?: boolean };
@@ -93,4 +95,11 @@ export const api = {
       request(`/musculos/${grupo}`, { auth: true }),
   },
   
+  inserirExercicio: {
+  carregarDados: () =>
+    request<{
+      gruposMusculares: GrupoMuscular[];
+      musculos: Musculo[];
+    }>("/inserirExercicio/", { auth: true }),
+},
 };

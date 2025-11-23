@@ -12,11 +12,11 @@ import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
 import PrivateRoute from "../components/auth/PrivateRoute";
 
-type GrupoMuscular = {
+export type GrupoMuscular = {
   nomeGrupo: string
 }
 
-type Musculo = {
+export type Musculo = {
   nome: string,
   grupoMuscular: GrupoMuscular
 }
