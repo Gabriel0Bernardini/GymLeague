@@ -11,6 +11,7 @@ import Footer from "../components/ui/Footer";
 import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
 import PrivateRoute from "../components/auth/PrivateRoute";
+import type { FeedbackState } from "./Cadastro";
 
 export type GrupoMuscular = {
   nomeGrupo: string
@@ -24,6 +25,18 @@ export type Musculo = {
 export default function InserirExercicio() {
   const [grupos, setGrupos] = useState<GrupoMuscular[]>([]);
   const [musculos, setMusculos] = useState<Musculo[]>([]);
+  const [nomeError, setNomeError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedMusculos, setSelectedMusculos] = useState<string[]>([]);
+
+  function toggleMusculo(nome: string) {
+    setSelectedMusculos((prev) =>
+      prev.includes(nome)
+        ? prev.filter((m) => m !== nome) // remove
+        : [...prev, nome]                // adiciona
+    );
+  }
 
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -53,9 +66,48 @@ export default function InserirExercicio() {
 
 
   // submit vazio (placeholder)
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("Form enviado — funcionalidade será adicionada depois");
+    let hasError = false;
+    setNomeError(null);  
+    setFeedback(null);
+  
+    if (!nome.trim()) {
+      setNomeError("Informe o nome.");
+      hasError = true;
+    }
+
+    if (selectedMusculos.length === 0) {
+    setFeedback({
+      message: "Selecione ao menos um músculo.",
+      variant: "error",
+    });
+    hasError = true;
+  }
+
+    if (hasError) return;
+    
+    try {
+      setIsLoading(true);
+      await api.inserirExercicio.criar({
+        nome,
+        musculos: selectedMusculos,
+      });
+      navigate("/home", { replace: true });
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      const body = (err as { body?: { code?: string } }).body;
+      if (status === 409 || body?.code === "EXERCISE_ALREADY_EXISTS") {
+        setNomeError("Esse exercício já existe.");
+      } else {
+        setFeedback({
+          message: "Erro ao criar exercício. Tente novamente.",
+          variant: "error",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -77,8 +129,13 @@ export default function InserirExercicio() {
               placeholder="Supino Reto"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              variant="default"
+              variant={nomeError ? "error" : "default"}
             />
+            {nomeError && (
+              <p className="text-red-500 text-xs italic -mt-3 mb-2">
+                {nomeError}
+              </p>
+            )}
           </div>
 
           {/* Musculos e grupos musculares */}
@@ -93,7 +150,12 @@ export default function InserirExercicio() {
                   .filter((m) => m.grupoMuscular.nomeGrupo === grupo.nomeGrupo)
                   .map((m) => (
                     <label key={m.nome} className="flex items-center gap-2">
-                      <input type="checkbox" value={m.nome} />
+                      <input
+                        type="checkbox"
+                        value={m.nome}
+                        checked={selectedMusculos.includes(m.nome)}
+                        onChange={() => toggleMusculo(m.nome)}
+                      />
                       <span>{m.nome}</span>
                     </label>
                   ))}
@@ -101,11 +163,21 @@ export default function InserirExercicio() {
             </div>
           ))}
 
+          {feedback && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={`my-2 text-sm ${feedback.variant === "error" ? "text-red-600" : "text-green-700"}`}
+            >
+              {feedback.message}
+            </div>
+          )}
+
           <Button
             type="submit"
             className="cursor-pointer text-white font-bold py-2 px-4 rounded w-full mt-2"
           >
-            Criar Exercício
+            {isLoading ? "Criando exercicio..." : "Criar exercicio"}
           </Button>
         </form>
 

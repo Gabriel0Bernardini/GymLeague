@@ -7,7 +7,7 @@ import { api } from "../libs/api";
 import { saveToken } from "../libs/auth";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
-type FeedbackState = {
+export type FeedbackState = {
   message: string;
   variant: "success" | "error";
 };

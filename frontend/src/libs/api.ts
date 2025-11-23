@@ -112,10 +112,17 @@ export const api = {
   },
   
   inserirExercicio: {
-  carregarDados: () =>
-    request<{
-      gruposMusculares: GrupoMuscular[];
-      musculos: Musculo[];
-    }>("/inserirExercicio/", { auth: true }),
-},
+    carregarDados: () =>
+      request<{
+        gruposMusculares: GrupoMuscular[];
+        musculos: Musculo[];
+      }>("/inserirExercicio/", { auth: true }),
+    
+    criar: (payload: { nome: string; musculos: string[] }) =>
+    request("/inserirExercicio/", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(payload),
+    }),
+  },
 };
