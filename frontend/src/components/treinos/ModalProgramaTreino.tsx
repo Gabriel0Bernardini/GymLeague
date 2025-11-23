@@ -1,12 +1,15 @@
-// src/components/treinos/ModalProgramaTreino.tsx
 import { useEffect, useState } from "react";
-import { FaTimes, FaEdit, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaTimes, FaEdit, FaChevronDown, FaChevronUp, FaTrash } from "react-icons/fa";
 import ModalSelecionarExercicios from "./ModalSelecionarExercicios";
+import type { ExercicioSelecionavel } from "./ModalSelecionarExercicios";
 
-type Exercicio = {
-  nome: string;
-  musculos: string[];
-  grupoMuscular: string;
+
+type Exercicio = ExercicioSelecionavel & {
+  // garanto campos como string para facilitar inputs
+  series: string;
+  repeticoes: string;
+  carga: string;
+  descricao: string;
 };
 
 type Ficha = {
@@ -19,7 +22,7 @@ type Ficha = {
 type ModalProgramaTreinoProps = {
   aberto: boolean;
   onClose: () => void;
-  onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[] }) => void; // opcional callback externo
+  onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[] }) => void;
 };
 
 export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: ModalProgramaTreinoProps) {
@@ -27,22 +30,30 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
   const [editandoNome, setEditandoNome] = useState(false);
 
   const [fichas, setFichas] = useState<Ficha[]>([
-    { id: 1, nome: "Ficha A", exercicios: [], editando: false }
+    { id: 1, nome: "Ficha A", exercicios: [], editando: false },
   ]);
 
   const [abertaId, setAbertaId] = useState<number | null>(null);
 
-  // mini modal de seleção de exercícios
+  // mini modal
   const [modalExercicioAberto, setModalExercicioAberto] = useState(false);
   const [fichaSelecionadaId, setFichaSelecionadaId] = useState<number | null>(null);
 
-  // animação de entrada/saída
+  // animação visibilidade
   const [visivel, setVisivel] = useState(false);
   const [animandoSaida, setAnimandoSaida] = useState(false);
 
   useEffect(() => {
     if (aberto) {
       setVisivel(true);
+      setNomePrograma("Novo Programa De Treino");
+      setEditandoNome(false);
+      setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false }]);
+      setAbertaId(null);
+      setModalExercicioAberto(false);
+      setFichaSelecionadaId(null);
+
+      setAnimandoSaida(false);
       setTimeout(() => setAnimandoSaida(false), 10);
     }
   }, [aberto]);
@@ -59,19 +70,22 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
 
   function adicionarFicha() {
     const letra = String.fromCharCode(65 + fichas.length);
-    setFichas(prev => [...prev, { id: Date.now(), nome: `Ficha ${letra}`, exercicios: [], editando: false }]);
+    setFichas((prev) => [
+      ...prev,
+      { id: Date.now(), nome: `Ficha ${letra}`, exercicios: [], editando: false },
+    ]);
   }
 
   function toggleFicha(id: number) {
-    setAbertaId(prev => (prev === id ? null : id));
+    setAbertaId((prev) => (prev === id ? null : id));
   }
 
   function editarNomeFicha(id: number, novoNome: string) {
-    setFichas(prev => prev.map(f => (f.id === id ? { ...f, nome: novoNome } : f)));
+    setFichas((prev) => prev.map((f) => (f.id === id ? { ...f, nome: novoNome } : f)));
   }
 
   function alternarEdicaoNome(id: number) {
-    setFichas(prev => prev.map(f => (f.id === id ? { ...f, editando: !f.editando } : f)));
+    setFichas((prev) => prev.map((f) => (f.id === id ? { ...f, editando: !f.editando } : f)));
   }
 
   function abrirSelecionarExerciciosParaFicha(id: number) {
@@ -79,18 +93,45 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
     setModalExercicioAberto(true);
   }
 
-  function onSelecionarExercicioParaFicha(ex: Exercicio) {
+  function onSelecionarExercicioParaFicha(ex: ExercicioSelecionavel) {
     if (fichaSelecionadaId == null) return;
-    setFichas(prev =>
-      prev.map(f =>
-        f.id === fichaSelecionadaId ? { ...f, exercicios: [...f.exercicios, ex] } : f
-      )
+    // acrescentar campos padrão (strings) para permitir edição
+    const exComCampos: Exercicio = {
+      ...ex,
+      series: ex.series ?? "",
+      repeticoes: ex.repeticoes ?? "",
+      carga: ex.carga ?? "",
+      descricao: ex.descricao ?? "",
+    };
+    setFichas((prev) =>
+      prev.map((f) => (f.id === fichaSelecionadaId ? { ...f, exercicios: [...f.exercicios, exComCampos] } : f))
     );
     setModalExercicioAberto(false);
+    setAbertaId(fichaSelecionadaId); // abrir ficha para ver o que foi adicionado
+  }
+
+  function atualizarCampoExercicio(fichaId: number, index: number, campo: keyof Exercicio, valor: string) {
+    setFichas((prev) =>
+      prev.map((f) =>
+        f.id === fichaId
+          ? {
+              ...f,
+              exercicios: f.exercicios.map((ex, i) => (i === index ? { ...ex, [campo]: valor } : ex)),
+            }
+          : f
+      )
+    );
+  }
+
+  function removerExercicioDaFicha(fichaId: number, index: number) {
+    setFichas((prev) =>
+      prev.map((f) =>
+        f.id === fichaId ? { ...f, exercicios: f.exercicios.filter((_, i) => i !== index) } : f
+      )
+    );
   }
 
   function handleSalvar() {
-    // se o usuário passar onSalvar, chama ele; senão só fecha
     if (onSalvar) onSalvar({ nomePrograma, fichas });
     fecharComAnimacao();
   }
@@ -120,11 +161,15 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               {editandoNome ? (
-                <input className="border p-1 rounded" value={nomePrograma} onChange={(e) => setNomePrograma(e.target.value)} />
+                <input
+                  className="border p-1 rounded"
+                  value={nomePrograma}
+                  onChange={(e) => setNomePrograma(e.target.value)}
+                />
               ) : (
                 <h2 className="text-2xl font-bold">{nomePrograma}</h2>
               )}
-              <button className="text-gray-600 hover:text-black" onClick={() => setEditandoNome(prev => !prev)}>
+              <button className="text-gray-600 hover:text-black" onClick={() => setEditandoNome((p) => !p)}>
                 <FaEdit />
               </button>
             </div>
@@ -138,7 +183,7 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
 
           {/* Lista fichas */}
           <div className="space-y-4">
-            {fichas.map(f => (
+            {fichas.map((f) => (
               <div key={f.id} className="border rounded-lg overflow-hidden">
                 <button
                   onClick={() => toggleFicha(f.id)}
@@ -146,7 +191,11 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
                 >
                   <div className="flex items-center gap-3">
                     {f.editando ? (
-                      <input className="border px-2 py-1 rounded" value={f.nome} onChange={(e) => editarNomeFicha(f.id, e.target.value)} />
+                      <input
+                        className="border px-2 py-1 rounded"
+                        value={f.nome}
+                        onChange={(e) => editarNomeFicha(f.id, e.target.value)}
+                      />
                     ) : (
                       <span className="font-bold">{f.nome}</span>
                     )}
@@ -175,21 +224,61 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
                           <th className="border p-2">Repetições</th>
                           <th className="border p-2">Carga</th>
                           <th className="border p-2">Descrição</th>
+                          <th className="border p-2">Ações</th>
                         </tr>
                       </thead>
                       <tbody>
                         {f.exercicios.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="border p-2 text-sm text-gray-500">Nenhum exercício adicionado ainda</td>
+                            <td colSpan={6} className="border p-2 text-sm text-gray-500">
+                              Nenhum exercício adicionado ainda
+                            </td>
                           </tr>
                         ) : (
                           f.exercicios.map((ex, idx) => (
                             <tr key={`${ex.nome}-${idx}`}>
-                              <td className="border p-2">{ex.nome}</td>
-                              <td className="border p-2">—</td>
-                              <td className="border p-2">—</td>
-                              <td className="border p-2">—</td>
-                              <td className="border p-2 text-sm">{ex.musculos?.join?.(", ") ?? ""}</td>
+                              <td className="border p-2 text-left">{ex.nome}</td>
+
+                              <td className="border p-2">
+                                <input
+                                  className="border rounded p-1 w-20 text-center"
+                                  value={ex.series}
+                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "series", e.target.value)}
+                                />
+                              </td>
+
+                              <td className="border p-2">
+                                <input
+                                  className="border rounded p-1 w-20 text-center"
+                                  value={ex.repeticoes}
+                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "repeticoes", e.target.value)}
+                                />
+                              </td>
+
+                              <td className="border p-2">
+                                <input
+                                  className="border rounded p-1 w-24 text-center"
+                                  value={ex.carga}
+                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "carga", e.target.value)}
+                                />
+                              </td>
+
+                              <td className="border p-2">
+                                <input
+                                  className="border rounded p-1 w-full"
+                                  value={ex.descricao}
+                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "descricao", e.target.value)}
+                                />
+                              </td>
+
+                              <td className="border p-2">
+                                <button
+                                  className="text-red-600 hover:text-red-800"
+                                  onClick={() => removerExercicioDaFicha(f.id, idx)}
+                                >
+                                  <FaTrash />
+                                </button>
+                              </td>
                             </tr>
                           ))
                         )}
