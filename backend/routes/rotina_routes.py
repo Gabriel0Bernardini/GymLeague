@@ -122,3 +122,108 @@ def criar_rotina():
         conn.close()
 
     return jsonify({"message": "Rotina criada"}), 201
+
+
+
+@rotinas_bp.get("/<nome_rotina>")
+@require_auth
+def obter_rotina(nome_rotina):
+    email = g.user["email"]
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+
+    # Buscar rotina
+    cur.execute("""
+        SELECT nome 
+        FROM Rotina
+        WHERE nome = %s AND fEmail_usuarioCriador = %s
+    """, (nome_rotina, email))
+    rotina = cur.fetchone()
+
+    if not rotina:
+        return jsonify({"message": "Rotina não encontrada"}), 404
+
+    # Buscar fichas da rotina (Treinos)
+    cur.execute("""
+        SELECT t.nome
+        FROM Treino t
+        JOIN TreinoRotina tr
+          ON tr.fkNomeTreino = t.nome
+         AND tr.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
+        WHERE tr.fkEmail_CriadorRotina = %s
+          AND tr.fkNomeRotina = %s
+    """, (email, nome_rotina))
+    fichas = cur.fetchall()
+
+    resultado = {
+        "nome": rotina["nome"],
+        "fichas": []
+    }
+
+    # Para cada ficha, buscar exercícios
+    for f in fichas:
+        nome_ficha = f["nome"]
+
+        cur.execute("""
+            SELECT 
+                te.fkNomeExercicio AS nome,
+                te.num_Series AS series,
+                te.descricao
+            FROM TreinoExercicio te
+            WHERE te.fkNomeTreino = %s
+              AND te.fkEmail_CriadorTreino = %s
+        """, (nome_ficha, email))
+
+        exercicios = cur.fetchall()
+
+        resultado["fichas"].append({
+            "nome": nome_ficha,
+            "exercicios": exercicios
+        })
+
+    cur.close()
+    conn.close()
+
+    return jsonify(resultado), 200
+
+
+@rotinas_bp.delete("/<nome_rotina>/<nome_ficha>")
+@require_auth
+def excluir_ficha(nome_rotina, nome_ficha):
+    email = g.user["email"]
+    conn = get_conn()
+    cur = conn.cursor()
+
+    try:
+        # Remover ligação ficha ↔ rotina
+        cur.execute("""
+            DELETE FROM TreinoRotina
+            WHERE fkEmail_CriadorRotina = %s
+              AND fkNomeRotina = %s
+              AND fkNomeTreino = %s
+              AND fkEmail_CriadorTreino = %s
+        """, (email, nome_rotina, nome_ficha, email))
+
+        # Opcional: Remover exercícios da ficha
+        cur.execute("""
+            DELETE FROM TreinoExercicio
+            WHERE fkNomeTreino = %s
+              AND fkEmail_CriadorTreino = %s
+        """, (nome_ficha, email))
+
+        # Opcional: remover o treino se não estiver em nenhuma outra rotina
+        cur.execute("""
+            DELETE FROM Treino
+            WHERE nome = %s
+              AND fEmail_usuarioCriador = %s
+        """, (nome_ficha, email))
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "Erro ao excluir ficha", "detail": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({"message": "Ficha removida"}), 200

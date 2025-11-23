@@ -85,6 +85,18 @@ export const api = {
         auth: true,
         body: JSON.stringify(payload),
       }),
+    
+    obter: (nome: string) =>
+      request(`/rotinas/${nome}`, {
+        auth: true,
+    }),
+    rotinas: {
+      excluirFicha: (rotina: string, ficha: string) =>
+        request(`/rotinas/${rotina}/${ficha}`, {
+          method: "DELETE",
+          auth: true,
+        }),
+    }
   },
 
   exercicios: {
