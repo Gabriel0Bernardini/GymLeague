@@ -70,23 +70,17 @@ export default function MeusTreinos() {
   }
 
   async function handleExcluir(id: number) {
-    const ficha = fichas.find((f) => f.id === id);
-    if (!ficha) return;
-
-    // precisa existir rotinaSelecionada com nome (modo edição) — se não houver, não sabemos qual rotina alterar
-    const nomeRotina = rotinaSelecionada?.nome;
-    if (!nomeRotina) {
-      console.warn("Tentando excluir ficha mas nenhuma rotina está selecionada (nomeRotina ausente).");
-      return;
-    }
+    const rotina = fichas.find((f) => f.id === id);
+    if (!rotina) return;
 
     try {
-      // cast to any porque sua tipagem do api pode não ter excluirFicha ainda
-      await (api.rotinas as any).excluirFicha?.(nomeRotina, ficha.nome);
-      // atualizar lista local
-      setFichas((prev) => prev.filter((f) => f.id !== id));
+      await api.rotinas.excluir(rotina.nome);
+
+      // Atualizar lista depois da exclusão
+      const listaAtualizada = await api.rotinas.listar();
+      setFichas(Array.isArray(listaAtualizada) ? listaAtualizada : []);
     } catch (err) {
-      console.error("Erro ao excluir ficha:", err);
+      console.error("Erro ao excluir rotina:", err);
     }
   }
 

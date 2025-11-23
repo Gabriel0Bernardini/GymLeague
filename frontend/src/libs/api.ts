@@ -90,13 +90,12 @@ export const api = {
       request(`/rotinas/${nome}`, {
         auth: true,
     }),
-    rotinas: {
-      excluirFicha: (rotina: string, ficha: string) =>
-        request(`/rotinas/${rotina}/${ficha}`, {
-          method: "DELETE",
-          auth: true,
-        }),
-    }
+    excluir: (nome: string) =>
+    request(`/rotinas/${nome}`, {
+      method: "DELETE",
+      auth: true,
+    }),
+    
   },
 
   exercicios: {
