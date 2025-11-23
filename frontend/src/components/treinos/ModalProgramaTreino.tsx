@@ -19,13 +19,14 @@ type Ficha = {
   editando?: boolean;
 };
 
-type ModalProgramaTreinoProps = {
+export type ModalProgramaTreinoProps = {
   aberto: boolean;
   onClose: () => void;
+  dados: any | null; 
   onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[] }) => void;
 };
 
-export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: ModalProgramaTreinoProps) {
+export default function ModalProgramaTreino({ aberto,dados, onClose, onSalvar }: ModalProgramaTreinoProps) {
   const [nomePrograma, setNomePrograma] = useState("Novo Programa De Treino");
   const [editandoNome, setEditandoNome] = useState(false);
 
@@ -43,20 +44,45 @@ export default function ModalProgramaTreino({ aberto, onClose, onSalvar }: Modal
   const [visivel, setVisivel] = useState(false);
   const [animandoSaida, setAnimandoSaida] = useState(false);
 
-  useEffect(() => {
-    if (aberto) {
-      setVisivel(true);
+useEffect(() => {
+  if (aberto) {
+    setVisivel(true);
+    setAnimandoSaida(false);
+
+    if (!dados) {
+      // modo "criar novo"
       setNomePrograma("Novo Programa De Treino");
-      setEditandoNome(false);
       setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false }]);
       setAbertaId(null);
-      setModalExercicioAberto(false);
       setFichaSelecionadaId(null);
-
-      setAnimandoSaida(false);
-      setTimeout(() => setAnimandoSaida(false), 10);
+      setModalExercicioAberto(false);
+      return;
     }
-  }, [aberto]);
+
+    // modo "editar"
+    setNomePrograma(dados.nome ?? "Programa sem nome");
+
+    // garantir IDs únicos e estrutura correta
+    const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => ({
+      id: f.id ?? Date.now() + index,
+      nome: f.nome,
+      editando: false,
+      exercicios: (f.exercicios ?? []).map((ex: any) => ({
+        ...ex,
+        series: ex.series ?? "",
+        repeticoes: ex.repeticoes ?? "",
+        carga: ex.carga ?? "",
+        descricao: ex.descricao ?? ""
+      }))
+    }));
+
+    setFichas(fichasConvertidas);
+    setAbertaId(null);
+    setFichaSelecionadaId(null);
+    setModalExercicioAberto(false);
+  }
+}, [aberto, dados]);
+
 
   function fecharComAnimacao() {
     setAnimandoSaida(true);

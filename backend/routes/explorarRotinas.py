@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from db import get_conn
 
-explorarRotinas_bp = Blueprint("explorarRotinas", __name__, url_prefix="/explorarRotinas")
+explorarRotinas_bp = Blueprint("explorar-rotinas", __name__, url_prefix="/explorar-rotinas")
 
 @explorarRotinas_bp.get("/")
 def buscarRotinas_publicas():
@@ -16,23 +16,23 @@ def buscarRotinas_publicas():
         t.nome AS nomeTreino,
         t.fEmail_usuarioCriador AS treinoCriadorEmail,
         e.nome AS nomeExercicio,
-        te.numSerie AS numSerie,
+        te.num_Series AS numSerie,
         te.descricao AS descricao
 
         
         
         FROM Rotina r JOIN Usuario u ON r.fEmail_usuarioCriador = u.email
-        JOIN TreinoRotina tr ON r.nome = tr.fk_nomeRotina AND 
-            r.fEmail_usuarioCriador = tr.fk_fEmail_usuarioCriador
-        JOIN Treino t ON t.nome = tr.fk_nomeTreino AND
-            t.fEmail_usuarioCriador = tr.fk_fEmail_usuarioCriador
+        JOIN TreinoRotina tr ON r.nome = tr.fkNomeRotina AND 
+            r.fEmail_usuarioCriador = tr.fkEmail_CriadorRotina
+        JOIN Treino t ON t.nome = tr.fkNomeTreino AND
+            t.fEmail_usuarioCriador = tr.fkEmail_CriadorTreino
         LEFT JOIN TreinoExercicio te
         ON te.fkNomeTreino = t.nome
         AND te.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
         LEFT JOIN Exercicio e ON e.nome = te.fkNomeExercicio
          
-        WHERE r.publico = TRUE
-         ORDER BY r.nome, t.nome; """
+        WHERE r.publico = true
+         ORDER BY r.nome; """
     
     cursor.execute(SQL)
     rows = cursor.fetchall()

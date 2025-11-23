@@ -27,66 +27,17 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
       }
 
     useEffect(() => {
-        api.auth.me().then((data) => setUser(data));
+    api.auth.me().then((data) => setUser(data));
 
-        setRotinas([
-  {
-    nome: "Rotina PPL",
-    criadorEmail: "felipeprinci@gmail.com",
-    criadorNome: "Felipe Princi",
-    treinos: [
-      {
-        nome: "Treino Push",
-        exercicios: [
-          {nome: "Supino Reto", series: 4 },
-          {nome: "Desenvolvimento Militar", series: 4 },
-          { nome: "Tríceps Corda", series: 3 },
-        ]
-      },
-      {
-        nome: "Treino Pull",
-        exercicios: [
-          {nome: "Puxada Aberta", series: 4},
-          {nome: "Remada Curvada", series: 4},
-          {nome: "Rosca Direta", series: 3},
-        ]
-      },
-      {
-        nome: "Treino Legs",
-        exercicios: [
-          {nome: "Agachamento Livre", series: 5},
-          {nome: "Leg Press", series: 4 },
-          {nome: "Elevação de Panturrilha", series: 4},
-        ]
-      }
-    ]
-  },
+    api.explorarRotinas.listar()
+      .then((data) => {
+        setRotinas(data.rotinas);
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar rotinas", err);
+      });
 
-  {
-    nome: "Rotina All-Body",
-    criadorEmail: "felipeprinci@gmail.com",
-    criadorNome: "Felipe Princi",
-    treinos: [
-      {
-        nome: "Full Body A",
-        exercicios: [
-          {  nome: "Agachamento", series: 4 },
-          {  nome: "Supino Reto", series: 4 },
-          {  nome: "Remada Baixa", series: 4 },
-        ]
-      },
-      {
-        nome: "Full Body B",
-        exercicios: [
-          {  nome: "Leg Press", series: 4 },
-          {  nome: "Desenvolvimento", series: 3 },
-          {  nome: "Puxada Supinada", series: 3 },
-        ]
-      }
-    ]
-  },
-]);
-    }, []);
+}, []);
 
     return (
         <PrivateRoute>
