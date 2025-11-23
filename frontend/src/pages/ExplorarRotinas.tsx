@@ -31,63 +31,56 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 
         setRotinas([
   {
-    id: 1,
     nome: "Rotina PPL",
     criadorEmail: "felipeprinci@gmail.com",
     criadorNome: "Felipe Princi",
     treinos: [
       {
-        id: 101,
         nome: "Treino Push",
         exercicios: [
-          { id: 1, nome: "Supino Reto", series: 4, repeticoes: 8, carga: "40kg" },
-          { id: 2, nome: "Desenvolvimento Militar", series: 4, repeticoes: 10, carga: "25kg" },
-          { id: 3, nome: "Tríceps Corda", series: 3, repeticoes: 12, carga: "20kg" },
+          {nome: "Supino Reto", series: 4 },
+          {nome: "Desenvolvimento Militar", series: 4 },
+          { nome: "Tríceps Corda", series: 3 },
         ]
       },
       {
-        id: 102,
         nome: "Treino Pull",
         exercicios: [
-          { id: 4, nome: "Puxada Aberta", series: 4, repeticoes: 10, carga: "45kg" },
-          { id: 5, nome: "Remada Curvada", series: 4, repeticoes: 8, carga: "30kg" },
-          { id: 6, nome: "Rosca Direta", series: 3, repeticoes: 12, carga: "12kg" },
+          {nome: "Puxada Aberta", series: 4},
+          {nome: "Remada Curvada", series: 4},
+          {nome: "Rosca Direta", series: 3},
         ]
       },
       {
-        id: 103,
         nome: "Treino Legs",
         exercicios: [
-          { id: 7, nome: "Agachamento Livre", series: 5, repeticoes: 5, carga: "60kg" },
-          { id: 8, nome: "Leg Press", series: 4, repeticoes: 10, carga: "100kg" },
-          { id: 9, nome: "Elevação de Panturrilha", series: 4, repeticoes: 15, carga: "20kg" },
+          {nome: "Agachamento Livre", series: 5},
+          {nome: "Leg Press", series: 4 },
+          {nome: "Elevação de Panturrilha", series: 4},
         ]
       }
     ]
   },
 
   {
-    id: 2,
     nome: "Rotina All-Body",
     criadorEmail: "felipeprinci@gmail.com",
     criadorNome: "Felipe Princi",
     treinos: [
       {
-        id: 201,
         nome: "Full Body A",
         exercicios: [
-          { id: 10, nome: "Agachamento", series: 4, repeticoes: 8, carga: "50kg" },
-          { id: 11, nome: "Supino Reto", series: 4, repeticoes: 10, carga: "35kg" },
-          { id: 12, nome: "Remada Baixa", series: 4, repeticoes: 12, carga: "40kg" },
+          {  nome: "Agachamento", series: 4 },
+          {  nome: "Supino Reto", series: 4 },
+          {  nome: "Remada Baixa", series: 4 },
         ]
       },
       {
-        id: 202,
         nome: "Full Body B",
         exercicios: [
-          { id: 13, nome: "Leg Press", series: 4, repeticoes: 12, carga: "120kg" },
-          { id: 14, nome: "Desenvolvimento", series: 3, repeticoes: 10, carga: "20kg" },
-          { id: 15, nome: "Puxada Supinada", series: 3, repeticoes: 12, carga: "35kg" },
+          {  nome: "Leg Press", series: 4 },
+          {  nome: "Desenvolvimento", series: 3 },
+          {  nome: "Puxada Supinada", series: 3 },
         ]
       }
     ]
