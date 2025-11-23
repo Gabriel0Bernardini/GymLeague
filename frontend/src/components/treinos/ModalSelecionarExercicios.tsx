@@ -1,49 +1,64 @@
-// src/components/treinos/ModalSelecionarExercicios.tsx
 import { useEffect, useState } from "react";
 import { FaTimes, FaSearch } from "react-icons/fa";
 import { api } from "../../libs/api";
 
-type Exercicio = {
+export type ExercicioSelecionavel = {
   nome: string;
   musculos: string[];
   grupoMuscular: string;
+  // campos que vamos popular por padrão quando o exercício for escolhido
+  series?: string;
+  repeticoes?: string;
+  carga?: string;
+  descricao?: string;
 };
 
 type ModalSelecionarExerciciosProps = {
   aberto: boolean;
   onClose: () => void;
-  onSelecionar: (exercicio: Exercicio) => void;
+  onSelecionar: (exercicio: ExercicioSelecionavel) => void;
 };
 
 export default function ModalSelecionarExercicios({
   aberto,
   onClose,
-  onSelecionar
+  onSelecionar,
 }: ModalSelecionarExerciciosProps) {
   const [pesquisa, setPesquisa] = useState("");
   const [grupo, setGrupo] = useState("");
   const [musculo, setMusculo] = useState("");
 
-  const [exercicios, setExercicios] = useState<Exercicio[]>([]);
+  const [exercicios, setExercicios] = useState<ExercicioSelecionavel[]>([]);
   const [grupos, setGrupos] = useState<string[]>([]);
   const [musculos, setMusculos] = useState<string[]>([]);
 
-  // carregar dados do backend
+  // carregar dados do backend quando abrir
   useEffect(() => {
     if (!aberto) return;
-    // fallback: se os endpoints não existirem, trate o erro no .catch
-    api.exercicios.listar()
-       .then((res) => {
-        if (Array.isArray(res)) setMusculos(res);
-        else setMusculos([]);
-        })
+
+    // buscar exercícios
+    api.exercicios
+      .listar()
+      .then((res) => {
+        // espera-se um array de { nome, musculos, grupoMuscular } — adapte se seu backend retornar diferente
+        if (Array.isArray(res)) setExercicios(res);
+        else setExercicios([]);
+      })
       .catch(() => setExercicios([]));
-    api.gruposMusculares.listar()
-       .then((res) => {
-        if (Array.isArray(res)) setMusculos(res);
-        else setMusculos([]);
-        })
+
+    // buscar grupos musculares
+    api.gruposMusculares
+      .listar()
+      .then((res) => {
+        if (Array.isArray(res)) setGrupos(res);
+        else setGrupos([]);
+      })
       .catch(() => setGrupos([]));
+
+    // reset filtros ao abrir
+    setPesquisa("");
+    setGrupo("");
+    setMusculo("");
   }, [aberto]);
 
   // carregar músculos ao mudar grupo
@@ -52,26 +67,38 @@ export default function ModalSelecionarExercicios({
       setMusculos([]);
       return;
     }
-    api.musculos.listarPorGrupo(grupo)
+    api.musculos
+      .listarPorGrupo(grupo)
       .then((res) => {
         if (Array.isArray(res)) setMusculos(res);
         else setMusculos([]);
-        })
+      })
       .catch(() => setMusculos([]));
   }, [grupo]);
 
   if (!aberto) return null;
 
-  const filtrados = exercicios.filter(e =>
+  const filtrados = exercicios.filter((e) =>
     e.nome.toLowerCase().includes(pesquisa.toLowerCase()) &&
     (grupo ? e.grupoMuscular === grupo : true) &&
     (musculo ? e.musculos.includes(musculo) : true)
   );
 
+  function handleSelecionar(e: ExercicioSelecionavel) {
+    // passa o exercício com campos padrão para edição na ficha
+    onSelecionar({
+      ...e,
+      series: e.series ?? "",
+      repeticoes: e.repeticoes ?? "",
+      carga: e.carga ?? "",
+      descricao: e.descricao ?? "",
+    });
+    onClose();
+  }
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center">
       <div className="bg-white w-[70%] max-h-[80%] p-6 rounded-lg shadow-xl overflow-y-auto">
-
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Selecionar Exercício</h2>
           <button onClick={onClose} className="text-gray-600 hover:text-red-600">
@@ -96,7 +123,11 @@ export default function ModalSelecionarExercicios({
             onChange={(e) => setGrupo(e.target.value)}
           >
             <option value="">Grupo Muscular</option>
-            {grupos.map(g => <option key={g} value={g}>{g}</option>)}
+            {grupos.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
 
           <select
@@ -106,19 +137,25 @@ export default function ModalSelecionarExercicios({
             disabled={!grupo}
           >
             <option value="">Músculo</option>
-            {musculos.map(m => <option key={m} value={m}>{m}</option>)}
+            {musculos.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="max-h-[300px] overflow-y-auto border rounded p-2 bg-gray-50">
-          {filtrados.map(e => (
+          {filtrados.map((ex) => (
             <div
-              key={e.nome}
+              key={ex.nome}
               className="p-3 bg-white rounded shadow-sm mb-2 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => onSelecionar(e)}
+              onClick={() => handleSelecionar(ex)}
             >
-              <p className="font-semibold">{e.nome}</p>
-              <p className="text-sm text-gray-600">{e.grupoMuscular} — {e.musculos.join(", ")}</p>
+              <p className="font-semibold">{ex.nome}</p>
+              <p className="text-sm text-gray-600">
+                {ex.grupoMuscular} — {ex.musculos.join(", ")}
+              </p>
             </div>
           ))}
 
@@ -126,7 +163,6 @@ export default function ModalSelecionarExercicios({
             <p className="text-center text-gray-600 py-4">Nenhum exercício encontrado.</p>
           )}
         </div>
-
       </div>
     </div>
   );

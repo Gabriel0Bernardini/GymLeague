@@ -9,7 +9,7 @@ def listar_grupos():
     conn = get_conn()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT nome FROM GrupoMuscular")
+    cursor.execute("SELECT nome FROM grupomuscular")
     grupos = [row[0] for row in cursor.fetchall()]
 
     return jsonify(grupos)
