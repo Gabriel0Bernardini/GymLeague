@@ -72,6 +72,13 @@ export const api = {
 
   explorarRotinas: {
         listar: () => request<{ rotinas: Rotina[] }>("/explorar-rotinas/", { auth: true }),
+
+        copiar: (rotina: Rotina, novoEmail: string) =>
+        request<{ mensagem: string }>("/explorar-rotinas/copiar", {
+            method: "POST",
+            auth: true, 
+            body: JSON.stringify({ rotina, usuarioEmail: novoEmail }),
+        }),
     },
 
   rotinas: {

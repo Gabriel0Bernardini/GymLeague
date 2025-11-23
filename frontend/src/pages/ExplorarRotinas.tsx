@@ -37,7 +37,20 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
         console.error("Erro ao carregar rotinas", err);
       });
 
-}, []);
+  }, []);
+
+    async function adicionarRotinaHandler(rotina: Rotina) {
+        if (!user) return;
+
+        try {
+            const res = await api.explorarRotinas.copiar(rotina, user.email);
+            alert(res.mensagem);
+            setModalAberto(false);
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao copiar rotina");
+        }
+    }
 
     return (
         <PrivateRoute>
@@ -102,6 +115,7 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
                       aberto={modalAberto}
                       rotina={rotinaSelecionada}
                       onClose={() => setModalAberto(false)}
+                      adicionarRotina={adicionarRotinaHandler}
                   />
                   )}
                 <div/>
