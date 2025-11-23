@@ -187,43 +187,63 @@ def obter_rotina(nome_rotina):
     return jsonify(resultado), 200
 
 
-@rotinas_bp.delete("/<nome_rotina>/<nome_ficha>")
+@rotinas_bp.delete("/<nome_rotina>")
 @require_auth
-def excluir_ficha(nome_rotina, nome_ficha):
+def excluir_rotina(nome_rotina):
     email = g.user["email"]
     conn = get_conn()
     cur = conn.cursor()
 
     try:
-        # Remover ligação ficha ↔ rotina
+        # Verificar se rotina existe
+        cur.execute("""
+            SELECT 1 FROM Rotina
+            WHERE nome = %s AND fEmail_usuarioCriador = %s
+        """, (nome_rotina, email))
+
+        if not cur.fetchone():
+            return jsonify({"message": "Rotina não encontrada"}), 404
+
+        # 1) Buscar todas as fichas (treinos) dessa rotina
+        cur.execute("""
+            SELECT fkNomeTreino, fkEmail_CriadorTreino
+            FROM TreinoRotina
+            WHERE fkEmail_CriadorRotina = %s
+            AND fkNomeRotina = %s
+        """, (email, nome_rotina))
+        
+        fichas = cur.fetchall()
+
+
+        # 2) Apagar vínculo Treino ↔ Rotina
         cur.execute("""
             DELETE FROM TreinoRotina
             WHERE fkEmail_CriadorRotina = %s
               AND fkNomeRotina = %s
-              AND fkNomeTreino = %s
-              AND fkEmail_CriadorTreino = %s
-        """, (email, nome_rotina, nome_ficha, email))
+        """, (email, nome_rotina))
 
-        # Opcional: Remover exercícios da ficha
-        cur.execute("""
-            DELETE FROM TreinoExercicio
-            WHERE fkNomeTreino = %s
-              AND fkEmail_CriadorTreino = %s
-        """, (nome_ficha, email))
+        # 3) Para cada ficha, apagar exercícios da ficha
+        for nome_ficha, _ in fichas:
+            cur.execute("""
+                DELETE FROM TreinoExercicio
+                WHERE fkNomeTreino = %s
+                  AND fkEmail_CriadorTreino = %s
+            """, (nome_ficha, email))
 
-        # Opcional: remover o treino se não estiver em nenhuma outra rotina
+        # 4) Remover a própria rotina
         cur.execute("""
-            DELETE FROM Treino
-            WHERE nome = %s
-              AND fEmail_usuarioCriador = %s
-        """, (nome_ficha, email))
+            DELETE FROM Rotina
+            WHERE nome = %s AND fEmail_usuarioCriador = %s
+        """, (nome_rotina, email))
 
         conn.commit()
+
     except Exception as e:
+        print(fichas)
         conn.rollback()
-        return jsonify({"message": "Erro ao excluir ficha", "detail": str(e)}), 500
+        return jsonify({"message": "Erro ao excluir rotina", "detail": str(e)}), 500
     finally:
         cur.close()
         conn.close()
 
-    return jsonify({"message": "Ficha removida"}), 200
+    return jsonify({"message": "Rotina removida"}), 200
