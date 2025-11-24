@@ -44,6 +44,8 @@ export default function ModalProgramaTreino({ aberto,dados, onClose, onSalvar }:
   const [visivel, setVisivel] = useState(false);
   const [animandoSaida, setAnimandoSaida] = useState(false);
 
+  const modoEdicao = !!dados; // true = editando, false = criando
+
 useEffect(() => {
   if (aberto) {
     setVisivel(true);
@@ -193,7 +195,9 @@ useEffect(() => {
                   onChange={(e) => setNomePrograma(e.target.value)}
                 />
               ) : (
-                <h2 className="text-2xl font-bold">{nomePrograma}</h2>
+                <h2 className="text-2xl font-bold">
+                  {modoEdicao ? nomePrograma : "Criar Nova Rotina"}
+                </h2>
               )}
               <button className="text-gray-600 hover:text-black" onClick={() => setEditandoNome((p) => !p)}>
                 <FaEdit />
@@ -330,8 +334,11 @@ useEffect(() => {
           </div>
 
           <div className="mt-6 flex justify-end">
-            <button onClick={handleSalvar} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-              Salvar Programa
+            <button
+              onClick={handleSalvar}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            >
+              {modoEdicao ? "Salvar Alterações" : "Criar Programa"}
             </button>
           </div>
         </div>

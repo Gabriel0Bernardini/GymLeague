@@ -248,3 +248,114 @@ def excluir_rotina(nome_rotina):
         conn.close()
 
     return jsonify({"message": "Rotina removida"}), 200
+
+
+#EDICAO de rotina
+@rotinas_bp.put("/<nome_rotina>")
+@require_auth
+def editar_rotina(nome_rotina):
+    if not request.is_json:
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+
+    payload = request.get_json()
+    novo_nome = (payload.get("nome") or "").strip()
+    fichas = payload.get("fichas") or []
+
+    if not novo_nome:
+        return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
+
+    email = g.user["email"]
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    try:
+        # 1) Verifica se existe
+        cur.execute("""
+            SELECT 1 FROM Rotina 
+            WHERE nome = %s AND fEmail_usuarioCriador = %s
+        """, (nome_rotina, email))
+
+        if not cur.fetchone():
+            return jsonify({"message": "Rotina não encontrada"}), 404
+
+        # 2) Apagar vínculos antigos
+        cur.execute("""
+            SELECT fkNomeTreino 
+            FROM TreinoRotina
+            WHERE fkEmail_CriadorRotina = %s AND fkNomeRotina = %s
+        """, (email, nome_rotina))
+
+        fichas_antigas = [row[0] for row in cur.fetchall()]
+
+        for ficha in fichas_antigas:
+            cur.execute("""
+                DELETE FROM TreinoExercicio
+                WHERE fkNomeTreino = %s AND fkEmail_CriadorTreino = %s
+            """, (ficha, email))
+
+        cur.execute("""
+            DELETE FROM TreinoRotina
+            WHERE fkEmail_CriadorRotina = %s AND fkNomeRotina = %s
+        """, (email, nome_rotina))
+
+        # 3) Atualizar nome da rotina (se mudou)
+        if novo_nome != nome_rotina:
+            cur.execute("""
+                UPDATE Rotina
+                SET nome = %s
+                WHERE nome = %s AND fEmail_usuarioCriador = %s
+            """, (novo_nome, nome_rotina, email))
+
+        # 4) Reinsere tudo novamente (mesma lógica da criação)
+        for ficha in fichas:
+            nome_ficha = (ficha.get("nome") or "").strip()
+            if not nome_ficha:
+                raise ValueError("Ficha sem nome")
+
+            cur.execute("""
+                SELECT 1 FROM Treino 
+                WHERE nome = %s AND fEmail_usuarioCriador = %s
+            """, (nome_ficha, email))
+            if not cur.fetchone():
+                cur.execute("""
+                    INSERT INTO Treino (nome, fEmail_usuarioCriador, publico)
+                    VALUES (%s, %s, %s)
+                """, (nome_ficha, email, False))
+
+            # Treino ↔ Rotina
+            cur.execute("""
+                INSERT INTO TreinoRotina (
+                    fkEmail_CriadorTreino, fkNomeTreino, fkEmail_CriadorRotina, fkNomeRotina
+                ) VALUES (%s, %s, %s, %s)
+            """, (email, nome_ficha, email, novo_nome))
+
+            # Exercícios
+            for ex in ficha.get("exercicios", []):
+                nome_ex = (ex.get("nome") or "").strip()
+                if not nome_ex:
+                    raise ValueError("Exercício sem nome")
+
+                cur.execute("SELECT 1 FROM Exercicio WHERE nome = %s", (nome_ex,))
+                if not cur.fetchone():
+                    cur.execute("INSERT INTO Exercicio (nome) VALUES (%s)", (nome_ex,))
+
+                series = ex.get("series") or 1
+                desc = ex.get("descricao") or ""
+
+                cur.execute("""
+                    INSERT INTO TreinoExercicio 
+                    (num_Series, descricao, fkEmail_CriadorTreino, fkNomeTreino, fkNomeExercicio)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (series, desc, email, nome_ficha, nome_ex))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "Erro ao editar rotina", "detail": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({"message": "Rotina atualizada"}), 200
