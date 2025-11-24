@@ -16,9 +16,13 @@ async function request<T>(
   { auth, headers, ...opts }: Options = {}
 ): Promise<T> {
   const finalHeaders = new Headers({
-    "Content-Type": "application/json",
     ...(headers || {}),
   });
+
+  // só adiciona Content-Type se tiver body (POST/PUT/PATCH)
+  if (opts.body) {
+    finalHeaders.append("Content-Type", "application/json");
+  }
 
   if (auth) {
     const token = localStorage.getItem("token");
@@ -42,6 +46,7 @@ async function request<T>(
 
   return data as T;
 }
+
 
 
 export const api = {

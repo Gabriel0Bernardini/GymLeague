@@ -12,7 +12,7 @@ def listar_por_grupo(grupo):
     cursor.execute("""
         SELECT nome
         FROM Musculo
-        WHERE fk_nomeGrupo = %s
+        WHERE fk_nomeGrupoMuscular = %s
     """, (grupo,))
 
     musculos = [row[0] for row in cursor.fetchall()]

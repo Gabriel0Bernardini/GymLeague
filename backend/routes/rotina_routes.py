@@ -167,12 +167,13 @@ def obter_rotina(nome_rotina):
         cur.execute("""
             SELECT 
                 te.fkNomeExercicio AS nome,
-                te.num_Series AS series,
+                te.num_Series AS series, 
                 te.descricao
             FROM TreinoExercicio te
             WHERE te.fkNomeTreino = %s
-              AND te.fkEmail_CriadorTreino = %s
+            AND te.fkEmail_CriadorTreino = %s
         """, (nome_ficha, email))
+
 
         exercicios = cur.fetchall()
 

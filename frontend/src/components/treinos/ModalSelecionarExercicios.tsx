@@ -55,13 +55,11 @@ export default function ModalSelecionarExercicios({
       })
       .catch(() => setGrupos([]));
 
-    // reset filtros ao abrir
     setPesquisa("");
     setGrupo("");
     setMusculo("");
   }, [aberto]);
 
-  // carregar músculos ao mudar grupo
   useEffect(() => {
     if (!grupo) {
       setMusculos([]);
@@ -85,7 +83,6 @@ export default function ModalSelecionarExercicios({
   );
 
   function handleSelecionar(e: ExercicioSelecionavel) {
-    // passa o exercício com campos padrão para edição na ficha
     onSelecionar({
       ...e,
       series: e.series ?? "",
