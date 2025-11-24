@@ -9,7 +9,6 @@ def listar_exercicios():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
 
-    # 1) Buscar exercícios + grupo muscular do exercício (via músculo)
     cursor.execute("""
         SELECT 
             e.nome AS exercicio,
@@ -18,12 +17,11 @@ def listar_exercicios():
         FROM Exercicio e
         JOIN ExercicioMusculo em ON em.fk_nomeExercicio = e.nome
         JOIN Musculo m ON m.nome = em.fk_nomeMusculo
-        JOIN GrupoMuscular gm ON gm.nome = m.fk_nomeGrupo
+        JOIN GrupoMuscular gm ON gm.nome = m.fk_nomeGrupoMuscular
     """)
 
     rows = cursor.fetchall()
 
-    # 2) Reformar para formato esperado pelo front
     exercicios = {}
     for row in rows:
         nome = row["exercicio"]
