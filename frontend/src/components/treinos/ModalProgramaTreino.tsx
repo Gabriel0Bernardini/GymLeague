@@ -1,15 +1,25 @@
-import { useEffect, useState } from "react";
+// src/components/treinos/ModalProgramaTreino.tsx
+import React, { useEffect, useState } from "react";
 import { FaTimes, FaEdit, FaChevronDown, FaChevronUp, FaTrash } from "react-icons/fa";
 import ModalSelecionarExercicios from "./ModalSelecionarExercicios";
 import type { ExercicioSelecionavel } from "./ModalSelecionarExercicios";
 
-
-type Exercicio = ExercicioSelecionavel & {
-  // garanto campos como string para facilitar inputs
-  series: string;
-  repeticoes: string;
+type SerieData = {
   carga: string;
+  repeticoes: string;
+  detalhe: string;
+};
+
+type Exercicio = {
+  nome: string;
+  musculos: string[];
+  grupoMuscular: string;
+  // o campo que o usuário vai digitar inicialmente (número de séries)
+  series: string; // usamos string pra manter compatibilidade com inputs
   descricao: string;
+  // controles internos
+  seriesExpanded?: boolean;
+  seriesData: SerieData[];
 };
 
 type Ficha = {
@@ -22,11 +32,11 @@ type Ficha = {
 export type ModalProgramaTreinoProps = {
   aberto: boolean;
   onClose: () => void;
-  dados: any | null; 
+  dados: any | null;
   onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[] }) => void;
 };
 
-export default function ModalProgramaTreino({ aberto,dados, onClose, onSalvar }: ModalProgramaTreinoProps) {
+export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }: ModalProgramaTreinoProps) {
   const [nomePrograma, setNomePrograma] = useState("Novo Programa De Treino");
   const [editandoNome, setEditandoNome] = useState(false);
 
@@ -44,47 +54,51 @@ export default function ModalProgramaTreino({ aberto,dados, onClose, onSalvar }:
   const [visivel, setVisivel] = useState(false);
   const [animandoSaida, setAnimandoSaida] = useState(false);
 
-  const modoEdicao = !!dados; // true = editando, false = criando
+  const modoEdicao = !!dados;
 
-useEffect(() => {
-  if (aberto) {
-    setVisivel(true);
-    setAnimandoSaida(false);
+  useEffect(() => {
+    if (aberto) {
+      setVisivel(true);
+      setAnimandoSaida(false);
 
-    if (!dados) {
-      // modo "criar novo"
-      setNomePrograma("Novo Programa De Treino");
-      setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false }]);
+      if (!dados) {
+        // modo "criar novo"
+        setNomePrograma("Novo Programa De Treino");
+        setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false }]);
+        setAbertaId(null);
+        setFichaSelecionadaId(null);
+        setModalExercicioAberto(false);
+        return;
+      }
+
+      // modo "editar" — converter estrutura
+      setNomePrograma(dados.nome ?? "Programa sem nome");
+
+      const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => ({
+        id: f.id ?? Date.now() + index,
+        nome: f.nome,
+        editando: false,
+        exercicios: (f.exercicios ?? []).map((ex: any) => ({
+          nome: ex.nome,
+          musculos: ex.musculos ?? [],
+          grupoMuscular: ex.grupoMuscular ?? "",
+          series: ex.series ?? "",
+          descricao: ex.descricao ?? "",
+          seriesExpanded: false,
+          seriesData: (ex.seriesData ?? []).map((s: any) => ({
+            carga: s.carga ?? "",
+            repeticoes: s.repeticoes ?? "",
+            detalhe: s.detalhe ?? "",
+          })),
+        })),
+      }));
+
+      setFichas(fichasConvertidas);
       setAbertaId(null);
       setFichaSelecionadaId(null);
       setModalExercicioAberto(false);
-      return;
     }
-
-    // modo "editar"
-    setNomePrograma(dados.nome ?? "Programa sem nome");
-
-    // garantir IDs únicos e estrutura correta
-    const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => ({
-      id: f.id ?? Date.now() + index,
-      nome: f.nome,
-      editando: false,
-      exercicios: (f.exercicios ?? []).map((ex: any) => ({
-        ...ex,
-        series: ex.series ?? "",
-        repeticoes: ex.repeticoes ?? "",
-        carga: ex.carga ?? "",
-        descricao: ex.descricao ?? ""
-      }))
-    }));
-
-    setFichas(fichasConvertidas);
-    setAbertaId(null);
-    setFichaSelecionadaId(null);
-    setModalExercicioAberto(false);
-  }
-}, [aberto, dados]);
-
+  }, [aberto, dados]);
 
   function fecharComAnimacao() {
     setAnimandoSaida(true);
@@ -121,21 +135,23 @@ useEffect(() => {
     setModalExercicioAberto(true);
   }
 
+  // quando o modal de seleção chama onSelecionar, adicionamos o exercício com campos padrão
   function onSelecionarExercicioParaFicha(ex: ExercicioSelecionavel) {
     if (fichaSelecionadaId == null) return;
-    // acrescentar campos padrão (strings) para permitir edição
     const exComCampos: Exercicio = {
-      ...ex,
-      series: ex.series ?? "",
-      repeticoes: ex.repeticoes ?? "",
-      carga: ex.carga ?? "",
+      nome: ex.nome,
+      musculos: ex.musculos ?? [],
+      grupoMuscular: ex.grupoMuscular ?? "",
+      series: ex.series ?? "", // inicialmente vazio: usuário digita o número
       descricao: ex.descricao ?? "",
+      seriesExpanded: false,
+      seriesData: [], // será populado quando usuário digitar número
     };
     setFichas((prev) =>
       prev.map((f) => (f.id === fichaSelecionadaId ? { ...f, exercicios: [...f.exercicios, exComCampos] } : f))
     );
     setModalExercicioAberto(false);
-    setAbertaId(fichaSelecionadaId); // abrir ficha para ver o que foi adicionado
+    setAbertaId(fichaSelecionadaId);
   }
 
   function atualizarCampoExercicio(fichaId: number, index: number, campo: keyof Exercicio, valor: string) {
@@ -151,10 +167,65 @@ useEffect(() => {
     );
   }
 
+  // atualiza número de séries e cria/ajusta seriesData
+  function atualizarNumeroSeries(fichaId: number, index: number, valor: string) {
+    const n = Math.max(0, Math.floor(Number(valor) || 0));
+    setFichas((prev) =>
+      prev.map((f) => {
+        if (f.id !== fichaId) return f;
+        return {
+          ...f,
+          exercicios: f.exercicios.map((ex, i) => {
+            if (i !== index) return ex;
+            const old = ex.seriesData ?? [];
+            const novo: SerieData[] = [];
+            for (let k = 0; k < n; k++) {
+              novo.push(old[k] ?? { carga: "", repeticoes: "", detalhe: "" });
+            }
+            return {
+              ...ex,
+              series: String(n),
+              seriesData: novo,
+            };
+          }),
+        };
+      })
+    );
+  }
+
+  function atualizarSerieCampo(fichaId: number, exIndex: number, serieIndex: number, campo: keyof SerieData, valor: string) {
+    setFichas((prev) =>
+      prev.map((f) => {
+        if (f.id !== fichaId) return f;
+        return {
+          ...f,
+          exercicios: f.exercicios.map((ex, i) => {
+            if (i !== exIndex) return ex;
+            const newSeries = ex.seriesData.map((s, j) => (j === serieIndex ? { ...s, [campo]: valor } : s));
+            return { ...ex, seriesData: newSeries };
+          }),
+        };
+      })
+    );
+  }
+
   function removerExercicioDaFicha(fichaId: number, index: number) {
     setFichas((prev) =>
       prev.map((f) =>
         f.id === fichaId ? { ...f, exercicios: f.exercicios.filter((_, i) => i !== index) } : f
+      )
+    );
+  }
+
+  function toggleExpandSeries(fichaId: number, index: number) {
+    setFichas((prev) =>
+      prev.map((f) =>
+        f.id === fichaId
+          ? {
+              ...f,
+              exercicios: f.exercicios.map((ex, i) => (i === index ? { ...ex, seriesExpanded: !ex.seriesExpanded } : ex)),
+            }
+          : f
       )
     );
   }
@@ -251,8 +322,6 @@ useEffect(() => {
                         <tr>
                           <th className="border p-2">Nome</th>
                           <th className="border p-2">Séries</th>
-                          <th className="border p-2">Repetições</th>
-                          <th className="border p-2">Carga</th>
                           <th className="border p-2">Descrição</th>
                           <th className="border p-2">Ações</th>
                         </tr>
@@ -260,56 +329,95 @@ useEffect(() => {
                       <tbody>
                         {f.exercicios.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="border p-2 text-sm text-gray-500">
+                            <td colSpan={4} className="border p-2 text-sm text-gray-500">
                               Nenhum exercício adicionado ainda
                             </td>
                           </tr>
                         ) : (
                           f.exercicios.map((ex, idx) => (
-                            <tr key={`${ex.nome}-${idx}`}>
-                              <td className="border p-2 text-left">{ex.nome}</td>
+                            <React.Fragment key={`${ex.nome}-${idx}`}>
+                              <tr>
+                                <td className="border p-2 text-left">{ex.nome}</td>
 
-                              <td className="border p-2">
-                                <input
-                                  className="border rounded p-1 w-20 text-center"
-                                  value={ex.series}
-                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "series", e.target.value)}
-                                />
-                              </td>
+                                <td className="border p-2">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    className="border rounded p-1 w-20 text-center"
+                                    value={ex.series}
+                                    onChange={(e) => atualizarNumeroSeries(f.id, idx, e.target.value)}
+                                  />
+                                </td>
 
-                              <td className="border p-2">
-                                <input
-                                  className="border rounded p-1 w-20 text-center"
-                                  value={ex.repeticoes}
-                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "repeticoes", e.target.value)}
-                                />
-                              </td>
+                                <td className="border p-2">
+                                  <input
+                                    className="border rounded p-1 w-full"
+                                    value={ex.descricao}
+                                    onChange={(e) => atualizarCampoExercicio(f.id, idx, "descricao", e.target.value)}
+                                  />
+                                </td>
 
-                              <td className="border p-2">
-                                <input
-                                  className="border rounded p-1 w-24 text-center"
-                                  value={ex.carga}
-                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "carga", e.target.value)}
-                                />
-                              </td>
+                                <td className="border p-2">
+                                  <div className="flex justify-center gap-2">
+                                    <button
+                                      className="text-gray-600 hover:text-black"
+                                      onClick={() => toggleExpandSeries(f.id, idx)}
+                                      title="Mostrar/ocultar séries"
+                                    >
+                                      {ex.seriesExpanded ? <FaChevronUp /> : <FaChevronDown />}
+                                    </button>
 
-                              <td className="border p-2">
-                                <input
-                                  className="border rounded p-1 w-full"
-                                  value={ex.descricao}
-                                  onChange={(e) => atualizarCampoExercicio(f.id, idx, "descricao", e.target.value)}
-                                />
-                              </td>
+                                    <button
+                                      className="text-red-600 hover:text-red-800"
+                                      onClick={() => removerExercicioDaFicha(f.id, idx)}
+                                      title="Remover exercício"
+                                    >
+                                      <FaTrash />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
 
-                              <td className="border p-2">
-                                <button
-                                  className="text-red-600 hover:text-red-800"
-                                  onClick={() => removerExercicioDaFicha(f.id, idx)}
-                                >
-                                  <FaTrash />
-                                </button>
-                              </td>
-                            </tr>
+                              {/* linha das séries — aparece quando expandido */}
+                              {ex.seriesExpanded && (
+                                <tr>
+                                  <td colSpan={4} className="border p-2 bg-gray-50">
+                                    <div className="ml-8 space-y-2">
+                                      {ex.seriesData.length === 0 ? (
+                                        <p className="text-sm text-gray-600">Nenhuma série configurada (digite o número de séries).</p>
+                                      ) : (
+                                        ex.seriesData.map((s, si) => (
+                                          <div key={si} className="flex gap-2 items-center">
+                                            <div className="w-28 font-medium">Série {si + 1}</div>
+
+                                            <input
+                                              placeholder="Carga"
+                                              className="border rounded p-1 w-28"
+                                              value={s.carga}
+                                              onChange={(e) => atualizarSerieCampo(f.id, idx, si, "carga", e.target.value)}
+                                            />
+
+                                            <input
+                                              placeholder="Repetições"
+                                              className="border rounded p-1 w-28"
+                                              value={s.repeticoes}
+                                              onChange={(e) => atualizarSerieCampo(f.id, idx, si, "repeticoes", e.target.value)}
+                                            />
+
+                                            <input
+                                              placeholder="Detalhe"
+                                              className="border rounded p-1 flex-1"
+                                              value={s.detalhe}
+                                              onChange={(e) => atualizarSerieCampo(f.id, idx, si, "detalhe", e.target.value)}
+                                            />
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
                           ))
                         )}
                       </tbody>
