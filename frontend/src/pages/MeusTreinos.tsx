@@ -26,7 +26,6 @@ export default function MeusTreinos() {
   const [modalAberto, setModalAberto] = useState(false);
   const [fichas, setFichas] = useState<{ id: number; nome: string }[]>([]);
 
-  // rotina completa (modo edição) - use "any" pra evitar conflito de tipos do backend
   const [rotinaSelecionada, setRotinaSelecionada] = useState<any | null>(null);
 
   function handleLogout() {
@@ -110,16 +109,29 @@ export default function MeusTreinos() {
           onCriar={() => handleCriar()}
         />
 
-        <ModalProgramaTreino
+       <ModalProgramaTreino
           aberto={modalAberto}
           dados={rotinaSelecionada}
           onClose={() => setModalAberto(false)}
           onSalvar={async ({ nomePrograma, fichas: fichasDoPrograma }) => {
             try {
-              await api.rotinas.criar?.({ nome: nomePrograma, fichas: fichasDoPrograma });
+              const payload = {
+                nome: nomePrograma,
+                fichas: fichasDoPrograma
+              };
 
+              if (rotinaSelecionada) {
+                // MODO EDIÇÃO
+                await api.rotinas.editar(rotinaSelecionada.nome, payload);
+              } else {
+                // MODO CRIAÇÃO
+                await api.rotinas.criar(payload);
+              }
+
+              // Atualiza lista 
               const listaAtualizada = await api.rotinas.listar();
               setFichas(Array.isArray(listaAtualizada) ? listaAtualizada : []);
+
               setModalAberto(false);
             } catch (err) {
               console.error("Erro ao salvar rotina:", err);

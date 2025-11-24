@@ -107,6 +107,13 @@ export const api = {
       method: "DELETE",
       auth: true,
     }),
+
+    editar: (nomeAntigo: string, payload: any) =>
+    request(`/rotinas/${encodeURIComponent(nomeAntigo)}`, {
+      method: "PUT",
+      auth: true,
+      body: JSON.stringify(payload),
+    }),
     
   },
 
