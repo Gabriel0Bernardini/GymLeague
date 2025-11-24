@@ -1,3 +1,4 @@
+// src/components/treinos/ModalSelecionarExercicios.tsx
 import { useEffect, useState } from "react";
 import { FaTimes, FaSearch } from "react-icons/fa";
 import { api } from "../../libs/api";
@@ -8,8 +9,6 @@ export type ExercicioSelecionavel = {
   grupoMuscular: string;
   // campos que vamos popular por padrão quando o exercício for escolhido
   series?: string;
-  repeticoes?: string;
-  carga?: string;
   descricao?: string;
 };
 
@@ -40,7 +39,6 @@ export default function ModalSelecionarExercicios({
     api.exercicios
       .listar()
       .then((res) => {
-        // espera-se um array de { nome, musculos, grupoMuscular } — adapte se seu backend retornar diferente
         if (Array.isArray(res)) setExercicios(res);
         else setExercicios([]);
       })
@@ -86,8 +84,6 @@ export default function ModalSelecionarExercicios({
     onSelecionar({
       ...e,
       series: e.series ?? "",
-      repeticoes: e.repeticoes ?? "",
-      carga: e.carga ?? "",
       descricao: e.descricao ?? "",
     });
     onClose();
