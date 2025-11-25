@@ -85,11 +85,17 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
           series: ex.series ?? "",
           descricao: ex.descricao ?? "",
           seriesExpanded: false,
-          seriesData: Array.from({ length: Number(ex.series ?? 0) }, () => ({
-            carga: "",
-            repeticoes: "",
-            detalhe: "",
-          })),
+          seriesData: Array.isArray(ex.seriesData)
+            ? ex.seriesData.map((s: any) => ({
+                carga: s.carga !== undefined && s.carga !== null ? String(s.carga) : "",
+                repeticoes: s.repeticoes !== undefined && s.repeticoes !== null ? String(s.repeticoes) : "",
+                detalhe: s.detalhe ?? "",
+              }))
+            : Array.from({ length: Number(ex.series ?? 0) }, () => ({
+                carga: "",
+                repeticoes: "",
+                detalhe: "",
+              })),
         })),
       }));
 

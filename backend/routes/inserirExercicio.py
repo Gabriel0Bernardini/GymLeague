@@ -9,35 +9,39 @@ def buscarMusculos():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     
-    SQL = """
-        SELECT
-        m.nome as nomeMusculo,
-        g.nome as nomeGrupoMuscular
-        FROM Musculo m JOIN GrupoMuscular g ON m.fk_nomeGrupoMuscular = g.nome"""
-    
-    cursor.execute(SQL)
-    
-    result = cursor.fetchall()
-    
-    gruposMusculares = {}
-    musculos = []
+    try:
+        SQL = """
+            SELECT
+            m.nome as nomeMusculo,
+            g.nome as nomeGrupoMuscular
+            FROM Musculo m JOIN GrupoMuscular g ON m.fk_nomeGrupoMuscular = g.nome"""
+        
+        cursor.execute(SQL)
+        
+        result = cursor.fetchall()
+        
+        gruposMusculares = {}
+        musculos = []
 
-    for row in result:
-        grupo = row["nomeGrupoMuscular"]
-        musculo = row["nomeMusculo"]
+        for row in result:
+            grupo = row["nomeGrupoMuscular"]
+            musculo = row["nomeMusculo"]
 
-        if grupo not in gruposMusculares:
-            gruposMusculares[grupo] = {"nomeGrupo": grupo}
+            if grupo not in gruposMusculares:
+                gruposMusculares[grupo] = {"nomeGrupo": grupo}
 
-        musculos.append({
-            "nome": musculo,
-            "grupoMuscular": {"nomeGrupo": grupo}
+            musculos.append({
+                "nome": musculo,
+                "grupoMuscular": {"nomeGrupo": grupo}
+            })
+
+        return jsonify({
+            "gruposMusculares": list(gruposMusculares.values()),
+            "musculos": musculos
         })
-
-    return jsonify({
-        "gruposMusculares": list(gruposMusculares.values()),
-        "musculos": musculos
-    })
+    finally:
+        cursor.close()
+        conn.close()
     
 @inserirExercicios_bp.post("/")
 def insertExercicio():
