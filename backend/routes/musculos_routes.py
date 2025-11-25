@@ -9,11 +9,15 @@ def listar_por_grupo(grupo):
     conn = get_conn()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT nome
-        FROM Musculo
-        WHERE fk_nomeGrupoMuscular = %s
-    """, (grupo,))
+    try:
+        cursor.execute("""
+            SELECT nome
+            FROM Musculo
+            WHERE fk_nomeGrupoMuscular = %s
+        """, (grupo,))
 
-    musculos = [row[0] for row in cursor.fetchall()]
-    return jsonify(musculos)
+        musculos = [row[0] for row in cursor.fetchall()]
+        return jsonify(musculos)
+    finally:
+        cursor.close()
+        conn.close()

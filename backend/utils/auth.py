@@ -26,11 +26,14 @@ def get_auth_user_from_header():
                 return None
             conn = get_conn()
             cur = conn.cursor(dictionary=True)
-            cur.execute("SELECT email, pNome FROM Usuario WHERE email = %s", (user_email,))
-            user = cur.fetchone()
-            cur.close()
-            conn.close()
-            return user
+            try:
+                cur.execute("SELECT email, pNome FROM Usuario WHERE email = %s", (user_email,))
+                return cur.fetchone()
+            except Exception:
+                return None
+            finally:
+                cur.close()
+                conn.close()
         except Exception:
             return None
     return None

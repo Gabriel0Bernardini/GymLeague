@@ -234,60 +234,91 @@ def obter_rotina(nome_rotina):
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
 
-    # Buscar rotina
-    cur.execute("""
-        SELECT nome 
-        FROM Rotina
-        WHERE nome = %s AND fEmail_usuarioCriador = %s
-    """, (nome_rotina, email))
-    rotina = cur.fetchone()
-
-    if not rotina:
-        return jsonify({"message": "Rotina não encontrada"}), 404
-
-    # Buscar fichas da rotina (Treinos)
-    cur.execute("""
-        SELECT t.nome
-        FROM Treino t
-        JOIN TreinoRotina tr
-          ON tr.fkNomeTreino = t.nome
-         AND tr.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
-        WHERE tr.fkEmail_CriadorRotina = %s
-          AND tr.fkNomeRotina = %s
-    """, (email, nome_rotina))
-    fichas = cur.fetchall()
-
-    resultado = {
-        "nome": rotina["nome"],
-        "fichas": []
-    }
-
-    # Para cada ficha, buscar exercícios
-    for f in fichas:
-        nome_ficha = f["nome"]
-
+    try:
+        # Buscar rotina
         cur.execute("""
-            SELECT 
-                te.fkNomeExercicio AS nome,
-                te.num_Series AS series, 
-                te.descricao
-            FROM TreinoExercicio te
-            WHERE te.fkNomeTreino = %s
-            AND te.fkEmail_CriadorTreino = %s
-        """, (nome_ficha, email))
+            SELECT nome 
+            FROM Rotina
+            WHERE nome = %s AND fEmail_usuarioCriador = %s
+        """, (nome_rotina, email))
+        rotina = cur.fetchone()
 
+        if not rotina:
+            return jsonify({"message": "Rotina não encontrada"}), 404
 
-        exercicios = cur.fetchall()
+        # Buscar fichas da rotina (Treinos)
+        cur.execute("""
+            SELECT t.nome
+            FROM Treino t
+            JOIN TreinoRotina tr
+              ON tr.fkNomeTreino = t.nome
+             AND tr.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
+            WHERE tr.fkEmail_CriadorRotina = %s
+              AND tr.fkNomeRotina = %s
+        """, (email, nome_rotina))
+        fichas = cur.fetchall()
 
-        resultado["fichas"].append({
-            "nome": nome_ficha,
-            "exercicios": exercicios
-        })
+        resultado = {
+            "nome": rotina["nome"],
+            "fichas": []
+        }
 
-    cur.close()
-    conn.close()
+        # Para cada ficha, buscar exercícios e séries
+        for f in fichas:
+            nome_ficha = f["nome"]
 
-    return jsonify(resultado), 200
+            # Exercícios da ficha
+            cur.execute("""
+                SELECT 
+                    te.fkNomeExercicio AS nome,
+                    te.num_Series AS series, 
+                    te.descricao
+                FROM TreinoExercicio te
+                WHERE te.fkNomeTreino = %s
+                AND te.fkEmail_CriadorTreino = %s
+            """, (nome_ficha, email))
+            exercicios = cur.fetchall()
+
+            # Séries por exercício da ficha
+            cur.execute("""
+                SELECT 
+                    s.fk_nomeExercicio AS nomeExercicio,
+                    s.numero,
+                    s.detalhe,
+                    s.repeticoes,
+                    s.carga
+                FROM Serie s
+                WHERE s.fkNomeTreino = %s
+                AND s.fkEmail_CriadorTreino = %s
+                ORDER BY s.fk_nomeExercicio, s.numero
+            """, (nome_ficha, email))
+            series_rows = cur.fetchall()
+
+            series_map = {}
+            for row in series_rows:
+                series_map.setdefault(row["nomeExercicio"], []).append({
+                    "numero": row["numero"],
+                    "detalhe": row["detalhe"] or "",
+                    "repeticoes": "" if row["repeticoes"] is None else str(row["repeticoes"]),
+                    "carga": "" if row["carga"] is None else str(row["carga"]),
+                })
+
+            resultado["fichas"].append({
+                "nome": nome_ficha,
+                "exercicios": [
+                    {
+                        **ex,
+                        "seriesData": series_map.get(ex["nome"], []),
+                        "series": ex.get("series") or "",
+                        "descricao": ex.get("descricao") or "",
+                    } for ex in exercicios
+                ]
+            })
+
+        return jsonify(resultado), 200
+    finally:
+        cur.close()
+        conn.close()
 
 
 @rotinas_bp.delete("/<nome_rotina>")
@@ -362,6 +393,7 @@ def editar_rotina(nome_rotina):
     payload = request.get_json()
     novo_nome = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
+    data_atual = datetime.date.today()
 
     if not novo_nome:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
@@ -391,6 +423,11 @@ def editar_rotina(nome_rotina):
         fichas_antigas = [row[0] for row in cur.fetchall()]
 
         for ficha in fichas_antigas:
+            # limpar séries existentes do treino
+            cur.execute("""
+                DELETE FROM Serie
+                WHERE fkNomeTreino = %s AND fkEmail_CriadorTreino = %s
+            """, (ficha, email))
             cur.execute("""
                 DELETE FROM TreinoExercicio
                 WHERE fkNomeTreino = %s AND fkEmail_CriadorTreino = %s
@@ -432,6 +469,17 @@ def editar_rotina(nome_rotina):
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, novo_nome))
 
+            # garantir usuário/treino na data para FK de Série
+            cur.execute("""
+                SELECT 1 FROM UsuarioTreino
+                WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
+            """, (email, nome_ficha, data_atual))
+            if not cur.fetchone():
+                cur.execute("""
+                    INSERT INTO UsuarioTreino (fkEmail_CriadorTreino, fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
+                    VALUES (%s, %s, %s, %s)
+                """, (email, email, nome_ficha, data_atual))
+
             # Exercícios
             for ex in ficha.get("exercicios", []):
                 nome_ex = (ex.get("nome") or "").strip()
@@ -444,12 +492,54 @@ def editar_rotina(nome_rotina):
 
                 series = ex.get("series") or 1
                 desc = ex.get("descricao") or ""
+                seriesData = ex.get("seriesData") or []
 
                 cur.execute("""
                     INSERT INTO TreinoExercicio 
                     (num_Series, descricao, fkEmail_CriadorTreino, fkNomeTreino, fkNomeExercicio)
                     VALUES (%s, %s, %s, %s, %s)
                 """, (series, desc, email, nome_ficha, nome_ex))
+
+                for idx, serie in enumerate(seriesData, start=1):
+                    carga_raw = serie.get("carga")
+                    try:
+                        carga = float(carga_raw) if carga_raw not in (None, "", " ") else 0
+                    except Exception:
+                        carga = 0
+
+                    repeticoes_raw = serie.get("repeticoes")
+                    try:
+                        repeticoes = int(repeticoes_raw) if repeticoes_raw not in (None, "", " ") else 0
+                    except Exception:
+                        repeticoes = 0
+
+                    detalhe = serie.get("detalhe") or ""
+
+                    cur.execute("""
+                        INSERT INTO Serie (
+                            numero, detalhe, repeticoes, carga,
+                            fk_nomeExercicio, fkNomeTreino,
+                            fkEmail_CriadorTreino, fEmail_UsuarioTreino,
+                            fk_dataDoTreino, fk_tituloMeta
+                        )
+                        VALUES (
+                            %s, %s, %s, %s,
+                            %s, %s,
+                            %s, %s,
+                            %s, %s
+                        )
+                    """, (
+                        idx,
+                        detalhe,
+                        repeticoes,
+                        carga,
+                        nome_ex,
+                        nome_ficha,
+                        email,
+                        email,
+                        data_atual,
+                        "MetaPadrão"
+                    ))
 
         conn.commit()
 
