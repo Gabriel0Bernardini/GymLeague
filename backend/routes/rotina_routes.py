@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request, g
 from utils.auth import require_auth
 from db import get_conn
 from mysql.connector import IntegrityError
+import datetime
 
 rotinas_bp = Blueprint("rotinas", __name__, url_prefix="/rotinas")
 
@@ -30,27 +31,19 @@ def listar_rotinas():
 @rotinas_bp.post("/")
 @require_auth
 def criar_rotina():
-    """
-    Espera payload:
-    {
-      "nome": "Programa X",
-      "fichas": [
-        { "nome": "Ficha A", "exercicios": [{ "nome": "Supino", "series": 4, "reps": 10, "descricao": "Banco" }, ...] },
-        ...
-      ]
-    }
-    """
+    
     if not request.is_json:
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
 
     payload = request.get_json()
     nome_rotina = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
-
+    data_atual = datetime.date.today()
+    
     if not nome_rotina:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
 
-    criador = g.user["email"]
+    email = g.user["email"]
 
     conn = get_conn()
     cur = conn.cursor()
@@ -58,53 +51,160 @@ def criar_rotina():
     try:
         # 1) Inserir Rotina (verifica se já existe)
         # Rotina tem PK (nome, fEmail_usuarioCriador)
-        cur.execute("SELECT 1 FROM Rotina WHERE nome = %s AND fEmail_usuarioCriador = %s", (nome_rotina, criador))
-        if cur.fetchone():
-            return jsonify({"code": "ALREADY_EXISTS", "message": "Rotina com esse nome já existe para esse usuário"}), 409
+        cur.execute("""
+                INSERT INTO Rotina (nome, fEmail_usuarioCriador)
+                VALUES (%s, %s)
+                ON DUPLICATE KEY UPDATE nome = nome
+            """, (nome_rotina, email))
 
-        cur.execute("INSERT INTO Rotina (nome, fEmail_usuarioCriador, publico) VALUES (%s, %s, %s)",
-                    (nome_rotina, criador, False))
+        # Limpar treinos ligados à rotina
+        cur.execute("""
+            DELETE FROM TreinoRotina
+            WHERE fkNomeRotina = %s AND fkEmail_CriadorRotina = %s
+        """, (nome_rotina, email))
 
+
+        # META PLACEHOLDER MUDAR DEPOIS
+        cur.execute("""
+            SELECT 1 FROM Metas 
+            WHERE titulo = %s AND fk_emailUsuario = %s
+        """, ("MetaPadrão", email))
+
+        existe = cur.fetchone()
+        if not existe:
+            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo) VALUES (%s, %s, %s, %s, %s)",
+                        ("MetaPadrão", email, 3.14, "", "p"))
+
+
+        
+        
+            
         # 2) Para cada ficha: criar Treino (se necessário) e inserir TreinoRotina
         for ficha in fichas:
             nome_ficha = (ficha.get("nome") or "").strip()
+            exercicios = ficha.get("exercicios", [])
+            
+            
+            
+            
             if not nome_ficha:
                 raise ValueError("Cada ficha precisa ter um nome")
 
             # criar Treino (chave PK: nome, fEmail_usuarioCriador)
-            cur.execute("SELECT 1 FROM Treino WHERE nome = %s AND fEmail_usuarioCriador = %s", (nome_ficha, criador))
+            cur.execute("SELECT 1 FROM Treino WHERE nome = %s AND fEmail_usuarioCriador = %s", (nome_ficha, email))
             if not cur.fetchone():
                 cur.execute("INSERT INTO Treino (nome, fEmail_usuarioCriador, publico) VALUES (%s, %s, %s)",
-                            (nome_ficha, criador, False))
+                            (nome_ficha, email, False))
 
             # inserir ligação TreinoRotina
             cur.execute("""
                 INSERT IGNORE INTO TreinoRotina (
                     fkEmail_CriadorTreino, fkNomeTreino, fkEmail_CriadorRotina, fkNomeRotina
                 ) VALUES (%s, %s, %s, %s)
-            """, (criador, nome_ficha, criador, nome_rotina))
+            """, (email, nome_ficha, email, nome_rotina))
+            
+            # limpar TreinoExercicio do treino
+            cur.execute("""
+                DELETE FROM TreinoExercicio
+                WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
+            """, (email, nome_ficha))
 
-            # 3) Para cada exercício da ficha: garantir Exercicio e inserir TreinoExercicio
-            exercicios = ficha.get("exercicios") or []
-            for ex in exercicios:
-                nome_ex = (ex.get("nome") or "").strip()
-                if not nome_ex:
-                    raise ValueError("Exercício com nome inválido na ficha %s" % nome_ficha)
-
-                # garantir existência do exercício no catálogo
-                cur.execute("SELECT 1 FROM Exercicio WHERE nome = %s", (nome_ex,))
-                if not cur.fetchone():
-                    cur.execute("INSERT INTO Exercicio (nome) VALUES (%s)", (nome_ex,))
-
-                num_series = ex.get("series") or ex.get("num_Series") or 1
-                descricao = ex.get("descricao") or ""
-                # Inserir TreinoExercicio (PK: fkNomeTreino, fkEmail_CriadorTreino, fkNomeExercicio)
-                # Se já existir, faremos UPDATE simples (por segurança)
+        
+               
+            #TABELA USUSARIO TREINO PLACEHOLDER MUDAR DEPOIS
+        
+            cur.execute("""
+                SELECT 1 FROM UsuarioTreino
+                WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
+            """, (email, nome_ficha, data_atual))
+            existe_ut = cur.fetchone()
+            
+            if not existe_ut:
                 cur.execute("""
-                    INSERT INTO TreinoExercicio (num_Series, descricao, fkEmail_CriadorTreino, fkNomeTreino, fkNomeExercicio)
+                    INSERT INTO UsuarioTreino (fkEmail_CriadorTreino,fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
+                    VALUES (%s, %s, %s, %s)
+                """, (email, email, nome_ficha, data_atual))
+            
+            
+            # limpar Series do treino também
+            cur.execute("""
+                DELETE FROM Serie
+                WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
+            """, (email, nome_ficha))
+            
+            
+            # 3) Para cada exercício da ficha: garantir Exercicio e inserir TreinoExercicio
+            for ex in exercicios:
+                nome_ex = ex.get("nome")
+                num_series = int(ex.get("series") or 0)
+                descricao = ex.get("descricao", "")
+                seriesData = ex.get("seriesData", [])
+
+                if not nome_ex:
+                    continue
+
+                # Criar TreinoExercicio
+                cur.execute("""
+                    INSERT INTO TreinoExercicio (
+                        num_Series, descricao,
+                        fkEmail_CriadorTreino, fkNomeTreino, fkNomeExercicio
+                    )
                     VALUES (%s, %s, %s, %s, %s)
-                    ON DUPLICATE KEY UPDATE num_Series = VALUES(num_Series), descricao = VALUES(descricao)
-                """, (num_series, descricao, criador, nome_ficha, nome_ex))
+                """, (
+                    num_series,
+                    descricao,
+                    email,
+                    nome_ficha,
+                    nome_ex
+                ))
+
+                # Inserir cada série
+                for idx, serie in enumerate(seriesData, start=1):
+                    
+                    
+                    carga_raw = serie.get("carga")
+                    try:
+                        carga = float(carga_raw) if carga_raw not in (None, "", " ") else 0
+                    except:
+                        carga = 0
+
+                    # Repetições
+                    repeticoes_raw = serie.get("repeticoes")
+                    try:
+                        repeticoes = int(repeticoes_raw) if repeticoes_raw not in (None, "", " ") else 0
+                    except:
+                        repeticoes = 0
+
+                    # Detalhe
+                    detalhe = serie.get("detalhe") or ""
+                    
+                    
+                    cur.execute("""
+                        INSERT INTO Serie (
+                            numero, detalhe, repeticoes, carga,
+                            fk_nomeExercicio, fkNomeTreino,
+                            fkEmail_CriadorTreino, fEmail_UsuarioTreino,
+                            fk_dataDoTreino, fk_tituloMeta
+                        )
+                        VALUES (
+                            %s, %s, %s, %s,
+                            %s, %s,
+                            %s, %s,
+                            %s, %s
+                        )
+                    """, (
+                        idx,
+                        detalhe,
+                        repeticoes,
+                        carga,
+                        nome_ex,
+                        nome_ficha,
+                        email,
+                        email,  # por enquanto o usuário do treino é o criador
+                        data_atual,
+                        "MetaPadrão"  # título da meta padrão
+                        
+                    ))
 
         conn.commit()
 
@@ -112,9 +212,11 @@ def criar_rotina():
         conn.rollback()
         return jsonify({"code": "BAD_REQUEST", "message": str(ve)}), 400
     except IntegrityError as ie:
+        print("ERRO SQL:", ie) 
         conn.rollback()
-        return jsonify({"code": "INTERNAL_ERROR", "message": "Erro de integridade: " + str(ie)}), 500
+        return jsonify({"code": "INTERNAL_ERROR", "message": "Erro de integridade: " + str(ie)}), 501
     except Exception as e:
+        print("ERRO SQL:", e) 
         conn.rollback()
         return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao criar rotina", "detail": str(e)}), 500
     finally:
