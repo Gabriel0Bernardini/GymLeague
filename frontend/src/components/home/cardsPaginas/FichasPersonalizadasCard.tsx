@@ -5,7 +5,7 @@ import { FaRegClipboard } from "react-icons/fa";
 export default function FichasPersonalizadasCard() {
   return (
     <DashboardCard
-      title="Fichas Personalizadas"
+      title="Rotinas Personalizadas"
       icon={ <FaRegClipboard size={40} /> }
       buttonLabel="Ver personalizadas"
       buttonLink="/explorar-rotinas"

@@ -6,9 +6,9 @@ import { BiNotepad } from "react-icons/bi";
 export default function MinhasFichasCard() {
   return (
     <DashboardCard
-      title="Minhas Fichas"
+      title="Minhas Rotinas"
       icon={<BiNotepad size={45} />}
-      buttonLabel="Ver fichas"
+      buttonLabel="Ver rotinas"
       buttonLink="/meus-treinos"
     >
       <div className="flex flex-col gap-2">
