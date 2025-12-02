@@ -39,7 +39,9 @@ def criar_rotina():
     nome_rotina = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
     publico_rotina = bool(payload.get("publico", False))
-    data_atual = datetime.date.today()
+    # usamos uma data placeholder para treinos criados por rotinas
+    # isso evita depender da data do PC; usamos o máximo permitido pelo MySQL (9999-12-31)
+    placeholder_date = datetime.date.max
     
     if not nome_rotina:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
@@ -119,16 +121,16 @@ def criar_rotina():
             #TABELA USUSARIO TREINO PLACEHOLDER MUDAR DEPOIS
         
             cur.execute("""
-                SELECT 1 FROM UsuarioTreino
-                WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
-            """, (email, nome_ficha, data_atual))
+                    SELECT 1 FROM UsuarioTreino
+                    WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
+                """, (email, nome_ficha, placeholder_date))
             existe_ut = cur.fetchone()
             
             if not existe_ut:
                 cur.execute("""
                     INSERT INTO UsuarioTreino (fkEmail_CriadorTreino,fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
                     VALUES (%s, %s, %s, %s)
-                """, (email, email, nome_ficha, data_atual))
+                """, (email, email, nome_ficha, placeholder_date))
             
             
             # limpar Series do treino também
@@ -206,9 +208,8 @@ def criar_rotina():
                         nome_ficha,
                         email,
                         email,  # por enquanto o usuário do treino é o criador
-                        data_atual,
+                        placeholder_date,
                         "MetaPadrão"  # título da meta padrão
-                        
                     ))
 
         conn.commit()
@@ -428,7 +429,8 @@ def editar_rotina(nome_rotina):
     novo_nome = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
     publico_rotina = bool(payload.get("publico", False))
-    data_atual = datetime.date.today()
+    # use placeholder date instead of current PC date
+    placeholder_date = datetime.date.max
 
     if not novo_nome:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
@@ -516,16 +518,16 @@ def editar_rotina(nome_rotina):
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, novo_nome))
 
-            # garantir usuário/treino na data para FK de Série
+            # garantir usuário/treino com data placeholder para FK de Série
             cur.execute("""
                 SELECT 1 FROM UsuarioTreino
                 WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
-            """, (email, nome_ficha, data_atual))
+            """, (email, nome_ficha, placeholder_date))
             if not cur.fetchone():
                 cur.execute("""
                     INSERT INTO UsuarioTreino (fkEmail_CriadorTreino, fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
                     VALUES (%s, %s, %s, %s)
-                """, (email, email, nome_ficha, data_atual))
+                """, (email, email, nome_ficha, placeholder_date))
 
             # Exercícios
             for ex in ficha.get("exercicios", []):
@@ -584,7 +586,7 @@ def editar_rotina(nome_rotina):
                         nome_ficha,
                         email,
                         email,
-                        data_atual,
+                        placeholder_date,
                         "MetaPadrão"
                     ))
 

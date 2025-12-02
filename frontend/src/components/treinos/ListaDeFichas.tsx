@@ -23,14 +23,14 @@ export default function ListaDeFichas({
     <div className="p-4">
       <div className="bg-gray-200 p-4 rounded shadow-md mt-6">
 
-        <h2 className="text-xl font-bold mb-2">Minhas Fichas</h2>
-        <p className="text-sm text-gray-600 mb-3">Acesse suas fichas de treino</p>
+        <h2 className="text-xl font-bold mb-2">Minhas Rotinas de treino</h2>
+        <p className="text-sm text-gray-600 mb-3">Acesse seus programas de treino aqui</p>
 
         <div className="bg-gray-300 rounded p-2 max-h-[240px] overflow-y-auto">
 
           {fichas.length === 0 ? (
             <p className="text-center text-sm text-gray-700 py-4">
-              Nenhuma ficha criada ainda.
+              Nenhuma rotina criada ainda.
             </p>
           ) : (
             fichas.map((ficha) => (
@@ -44,7 +44,7 @@ export default function ListaDeFichas({
                   <button
                     onClick={() => onAbrir(ficha.id)}
                     className="hover:text-blue-600 transition-colors"
-                    title="Abrir Ficha"
+                    title="Abrir Rotina"
                   >
                     <FaFolderOpen size={20} />
                   </button>
@@ -52,7 +52,7 @@ export default function ListaDeFichas({
                   <button
                     onClick={() => onExcluir(ficha.id)}
                     className="hover:text-red-600 transition-colors"
-                    title="Excluir Ficha"
+                    title="Excluir Rotina"
                   >
                     <FaTrash size={20} />
                   </button>
@@ -68,7 +68,7 @@ export default function ListaDeFichas({
             className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
             onClick={onCriar}
           >
-            Criar Nova Ficha
+            Criar Nova Rotina de Treino
           </button>
         </div>
 
