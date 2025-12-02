@@ -113,11 +113,12 @@ export default function MeusTreinos() {
           aberto={modalAberto}
           dados={rotinaSelecionada}
           onClose={() => setModalAberto(false)}
-          onSalvar={async ({ nomePrograma, fichas: fichasDoPrograma }) => {
+          onSalvar={async ({ nomePrograma, fichas: fichasDoPrograma, publico }) => {
             try {
-              const payload = {
+              const payload: any = {
                 nome: nomePrograma,
-                fichas: fichasDoPrograma
+                fichas: fichasDoPrograma,
+                publico: !!publico,
               };
 
               if (rotinaSelecionada) {
