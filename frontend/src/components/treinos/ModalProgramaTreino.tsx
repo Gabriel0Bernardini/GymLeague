@@ -27,21 +27,24 @@ type Ficha = {
   nome: string;
   exercicios: Exercicio[];
   editando?: boolean;
+  publico?: boolean;
 };
 
 export type ModalProgramaTreinoProps = {
   aberto: boolean;
   onClose: () => void;
   dados: any | null;
-  onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[] }) => void;
+  onSalvar?: (payload: { nomePrograma: string; fichas: Ficha[]; publico: boolean }) => void;
 };
 
 export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }: ModalProgramaTreinoProps) {
   const [nomePrograma, setNomePrograma] = useState("Novo Programa De Treino");
   const [editandoNome, setEditandoNome] = useState(false);
 
+  const [programPublico, setProgramPublico] = useState(false);
+
   const [fichas, setFichas] = useState<Ficha[]>([
-    { id: 1, nome: "Ficha A", exercicios: [], editando: false },
+    { id: 1, nome: "Ficha A", exercicios: [], editando: false, publico: false },
   ]);
 
   const [abertaId, setAbertaId] = useState<number | null>(null);
@@ -64,7 +67,8 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
       if (!dados) {
         // modo "criar novo"
         setNomePrograma("Novo Programa De Treino");
-        setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false }]);
+        setFichas([{ id: 1, nome: "Ficha A", exercicios: [], editando: false, publico: false }]);
+        setProgramPublico(false);
         setAbertaId(null);
         setFichaSelecionadaId(null);
         setModalExercicioAberto(false);
@@ -73,11 +77,13 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
 
       // modo "editar" — converter estrutura
       setNomePrograma(dados.nome ?? "Programa sem nome");
+      setProgramPublico(dados.publico ?? false);
 
       const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => ({
         id: f.id ?? Date.now() + index,
         nome: f.nome,
         editando: false,
+        publico: f.publico ?? false,
         exercicios: (f.exercicios ?? []).map((ex: any) => ({
           nome: ex.nome,
           musculos: ex.musculos ?? [],
@@ -120,7 +126,7 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
     const letra = String.fromCharCode(65 + fichas.length);
     setFichas((prev) => [
       ...prev,
-      { id: Date.now(), nome: `Ficha ${letra}`, exercicios: [], editando: false },
+      { id: Date.now(), nome: `Ficha ${letra}`, exercicios: [], editando: false, publico: programPublico },
     ]);
   }
 
@@ -158,6 +164,21 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
     );
     setModalExercicioAberto(false);
     setAbertaId(fichaSelecionadaId);
+  }
+
+  function handleProgramPublicoChange(valor: boolean) {
+    setProgramPublico(valor);
+    setFichas((prev) => prev.map((f) => ({ ...f, publico: valor })));
+  }
+
+  function toggleFichaPublico(fichaId: number, valor: boolean) {
+    setFichas((prev) => {
+      const novo = prev.map((f) => (f.id === fichaId ? { ...f, publico: valor } : f));
+      // se todas fichas forem publicas, marcar programa como publico
+      const todas = novo.length > 0 && novo.every((ff) => ff.publico);
+      setProgramPublico(todas);
+      return novo;
+    });
   }
 
   function atualizarCampoExercicio(fichaId: number, index: number, campo: keyof Exercicio, valor: string) {
@@ -237,7 +258,7 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
   }
 
   function handleSalvar() {
-    if (onSalvar) onSalvar({ nomePrograma, fichas });
+    if (onSalvar) onSalvar({ nomePrograma, fichas, publico: programPublico });
     fecharComAnimacao();
   }
 
@@ -276,9 +297,18 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
                   {modoEdicao ? nomePrograma : "Criar Nova Rotina"}
                 </h2>
               )}
-              <button className="text-gray-600 hover:text-black" onClick={() => setEditandoNome((p) => !p)}>
-                <FaEdit />
-              </button>
+                <button className="text-gray-600 hover:text-black" onClick={() => setEditandoNome((p) => !p)}>
+                  <FaEdit />
+                </button>
+
+                <label className="ml-3 flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={programPublico}
+                    onChange={(e) => handleProgramPublicoChange(e.target.checked)}
+                  />
+                  <span>Público</span>
+                </label>
             </div>
 
             <div className="flex items-center gap-4">
@@ -306,16 +336,24 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
                     ) : (
                       <span className="font-bold">{f.nome}</span>
                     )}
-
-                    <button
-                      className="text-gray-600 hover:text-black"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        alternarEdicaoNome(f.id);
-                      }}
-                    >
-                      <FaEdit />
-                    </button>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!f.publico}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => toggleFichaPublico(f.id, e.target.checked)}
+                        title="Ficha pública"
+                      />
+                      <button
+                        className="text-gray-600 hover:text-black"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          alternarEdicaoNome(f.id);
+                        }}
+                      >
+                        <FaEdit />
+                      </button>
+                    </label>
                   </div>
 
                   {abertaId === f.id ? <FaChevronUp /> : <FaChevronDown />}
