@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TopBar from "../components/ui/TopBar";
 import Footer from  "../components/ui/Footer";
 import { api } from "../libs/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { User } from "./Home";
 import PrivateRoute from "../components/auth/PrivateRoute";
 import { clearToken } from "../libs/auth";
@@ -20,6 +20,7 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
     const [tipoFiltro, setTipoFiltro] = useState<"nome" | "criador">("nome"); 
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     function handleLogout() {
         clearToken();
@@ -38,6 +39,19 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
       });
 
   }, []);
+
+    // abrir modal se a página foi acessada com uma rotina no state
+    useEffect(() => {
+      const state: any = (location && (location as any).state) || {};
+      const rotinaPublica: Rotina | undefined = state?.rotinaPublica;
+      if (rotinaPublica) {
+        setRotinaSelecionada(rotinaPublica);
+        setModalAberto(true);
+        // limpar state para não reabrir ao navegar
+        navigate(location.pathname, { replace: true, state: null });
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location?.state]);
 
     async function adicionarRotinaHandler(rotina: Rotina) {
         if (!user) return;
