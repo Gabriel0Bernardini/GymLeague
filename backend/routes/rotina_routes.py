@@ -496,17 +496,18 @@ def editar_rotina(nome_rotina):
             if not nome_ficha:
                 raise ValueError("Ficha sem nome")
 
+            ficha_publico = bool(ficha.get("publico", False))
+            
             cur.execute("""
                 SELECT 1 FROM Treino 
                 WHERE nome = %s AND fEmail_usuarioCriador = %s
             """, (nome_ficha, email))
             if not cur.fetchone():
-                ficha_publico = bool(ficha.get("publico", False))
                 cur.execute("""
                     INSERT INTO Treino (nome, fEmail_usuarioCriador, publico)
                     VALUES (%s, %s, %s)
                 """, (nome_ficha, email, ficha_publico))
-            
+            else:
                 # se já existir, garantir que a flag publico siga o payload
                 cur.execute("UPDATE Treino SET publico = %s WHERE nome = %s AND fEmail_usuarioCriador = %s",
                             (ficha_publico, nome_ficha, email))

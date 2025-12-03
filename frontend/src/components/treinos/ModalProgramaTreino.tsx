@@ -79,31 +79,36 @@ export default function ModalProgramaTreino({ aberto, dados, onClose, onSalvar }
       setNomePrograma(dados.nome ?? "Programa sem nome");
       setProgramPublico(dados.publico ?? false);
 
-      const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => ({
-        id: f.id ?? Date.now() + index,
-        nome: f.nome,
-        editando: false,
-        publico: f.publico ?? false,
-        exercicios: (f.exercicios ?? []).map((ex: any) => ({
-          nome: ex.nome,
-          musculos: ex.musculos ?? [],
-          grupoMuscular: ex.grupoMuscular ?? "",
-          series: ex.series ?? "",
-          descricao: ex.descricao ?? "",
-          seriesExpanded: false,
-          seriesData: Array.isArray(ex.seriesData)
-            ? ex.seriesData.map((s: any) => ({
-                carga: s.carga !== undefined && s.carga !== null ? String(s.carga) : "",
-                repeticoes: s.repeticoes !== undefined && s.repeticoes !== null ? String(s.repeticoes) : "",
-                detalhe: s.detalhe ?? "",
-              }))
-            : Array.from({ length: Number(ex.series ?? 0) }, () => ({
-                carga: "",
-                repeticoes: "",
-                detalhe: "",
-              })),
-        })),
-      }));
+      const fichasConvertidas = (dados.fichas ?? []).map((f: any, index: number) => {
+        // Backend retorna publico como booleano para cada ficha
+        const fichaPublico = typeof f.publico === "boolean" ? f.publico : Boolean(f.publico);
+        
+        return {
+          id: f.id ?? Date.now() + index,
+          nome: f.nome,
+          editando: false,
+          publico: fichaPublico,
+          exercicios: (f.exercicios ?? []).map((ex: any) => ({
+            nome: ex.nome,
+            musculos: ex.musculos ?? [],
+            grupoMuscular: ex.grupoMuscular ?? "",
+            series: ex.series ?? "",
+            descricao: ex.descricao ?? "",
+            seriesExpanded: false,
+            seriesData: Array.isArray(ex.seriesData)
+              ? ex.seriesData.map((s: any) => ({
+                  carga: s.carga !== undefined && s.carga !== null ? String(s.carga) : "",
+                  repeticoes: s.repeticoes !== undefined && s.repeticoes !== null ? String(s.repeticoes) : "",
+                  detalhe: s.detalhe ?? "",
+                }))
+              : Array.from({ length: Number(ex.series ?? 0) }, () => ({
+                  carga: "",
+                  repeticoes: "",
+                  detalhe: "",
+                })),
+          })),
+        };
+      });
 
       setFichas(fichasConvertidas);
       setAbertaId(null);
