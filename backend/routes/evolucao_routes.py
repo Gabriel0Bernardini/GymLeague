@@ -20,7 +20,7 @@ def get_treinoCompletoData():
         AND dataDoTreino <> '9999-12-31'
     """
     cursor.execute(SQL, (email,))
-    treinosData = cursor.fetchone()
+    treinosData = cursor.fetchall()
     
     for treino in treinosData:
         
@@ -35,7 +35,7 @@ def get_treinoCompletoData():
             AND fkNomeTreino = %s
             """
         cursor.execute(SQL, (email, email, nomeTreino))
-        rotina = cursor.fetchall()
+        rotina = cursor.fetchone()
         
         nomeRotina = rotina["fkNomeRotina"] if rotina else None
         
@@ -76,7 +76,7 @@ def get_treinoCompletoData():
         resposta.append({
             "nomeTreino": nomeTreino,
             "nomeRotina": nomeRotina,
-            "dataDoTreino": dataDoTreino,
+            "dataDoTreino": str(dataDoTreino),
             "exercicios": lista_exercicios
         })
             
@@ -87,6 +87,7 @@ def get_treinoCompletoData():
 
 
 @evolucao_bp.get("/pesoCorporal")
+@require_auth
 def get_evolucaoPesoCorporal():
     try:
         email = g.user['email']
@@ -118,6 +119,7 @@ def get_evolucaoPesoCorporal():
         conn.close()
 
 @evolucao_bp.get("/percentualGordura")
+@require_auth
 def get_evolucaoPercentualGordura():
     try:
         email = g.user['email']
