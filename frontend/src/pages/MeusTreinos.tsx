@@ -13,11 +13,7 @@ import Footer from "../components/ui/Footer";
 import PrivateRoute from "../components/auth/PrivateRoute";
 import ListaDeFichas from "../components/treinos/ListaDeFichas";
 import ModalProgramaTreino from "../components/treinos/ModalProgramaTreino";
-
-export type User = {
-  pNome: string;
-  email: string;
-};
+import type { User } from "./Home";
 
 export default function MeusTreinos() {
   const navigate = useNavigate();

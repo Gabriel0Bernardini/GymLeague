@@ -10,6 +10,7 @@ import MeusTreinos from "./pages/MeusTreinos";
 import ExplorarRotinas from "./pages/ExplorarRotinas";
 import InserirExercicio from "./pages/InserirExercicio";
 import Ranking from "./pages/Ranking";
+import Evolução from "./pages/Evolução";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   return isAuthenticated() ? children : <Navigate to="/" replace />;
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
         <Route path="/meus-treinos" element={<ProtectedRoute><MeusTreinos /></ProtectedRoute>} />
+        <Route path="/evolucao" element={<ProtectedRoute><Evolução /></ProtectedRoute>} />
         <Route path="/explorar-rotinas" element={<ProtectedRoute><ExplorarRotinas/></ProtectedRoute>}/>
         <Route path="inserir-exercicio" element={<ProtectedRoute><InserirExercicio/></ProtectedRoute>} />
         <Route path="/ranking" element={<ProtectedRoute><Ranking/></ProtectedRoute>} />
