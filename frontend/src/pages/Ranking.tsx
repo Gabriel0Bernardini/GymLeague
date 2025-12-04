@@ -16,16 +16,33 @@ import type { FeedbackState } from "./Cadastro";
 
 export default function Ranking() {
   const navigate = useNavigate();
+  const [top3, setTop3] = useState<
+  { musculo: string; ranking: string }[]>([]);
   
+  const [grupos, setGrupos] = useState<
+  Record<string, { 
+    rankingGrupo: string; 
+    musculos: { musculo: string; ranking: string }[]
+  }>
+>({});
+
   function handleLogout() {
     clearToken();
     navigate("/", { replace: true });
   }
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    api.auth.me().then((data) => setUser(data));
-  }, []);
+ useEffect(() => {
+  api.auth.me().then(async (data) => {
+    setUser(data);
+
+    const t3 = await api.ranking.top3(data.email);
+    setTop3(t3);
+
+    const tg = await api.ranking.todos(data.email);
+    setGrupos(tg.grupos);
+  });
+}, []);
 
   return (
     <div className="w-full min-h-screen bg-gray-100 p-6 text-gray-900">
@@ -63,20 +80,11 @@ export default function Ranking() {
             <h2 className="text-xl font-bold mb-3">Top Ranking Muscles</h2>
 
             <ul className="space-y-3">
-              <li className="p-3 bg-gray-50 border rounded-lg">
-                <p className="font-semibold">Chest - Esmeralda II</p>
-                <p className="text-sm text-gray-600">
-                  Double Press – 28kg • Incline Double Press – 24kg
-                </p>
-              </li>
-
-              <li className="p-3 bg-gray-50 border rounded-lg">
-                <p className="font-semibold">Trapézio – Ouro I</p>
-              </li>
-
-              <li className="p-3 bg-gray-50 border rounded-lg">
-                <p className="font-semibold">Abdômen Superior – Prata IV</p>
-              </li>
+              {top3.map((m, i) => (
+                <li key={i} className="p-3 bg-gray-50 border rounded-lg">
+                  <p className="font-semibold">{m.musculo} — {m.ranking}</p>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="bg-white shadow rounded-lg p-5">
@@ -102,8 +110,23 @@ export default function Ranking() {
         </div>
 
         <div className="bg-white shadow rounded-lg p-5 flex justify-center items-center">
-          <div className="w-72 h-96 border rounded-lg flex items-center justify-center text-gray-500">
-            provavel lista de grupso musculartes
+          <div className="bg-white rounded-lg p-5 w-full">
+            <h2 className="text-xl font-bold">Todos os Músculos</h2>
+
+            <div className="space-y-4">
+              {Object.keys(grupos).map((grupo) => (
+                <div key={grupo} className="border p-3 rounded-lg">
+                
+                  <p className="font-bold text-lg mb-1">{grupo} — <span>{grupos[grupo].rankingGrupo}</span></p>
+
+                  <ul className="space-y-1">
+                    {grupos[grupo].musculos.map((m, i) => (
+                      <li key={i}>• {m.musculo} — {m.ranking}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -128,6 +128,30 @@ export const api = {
     listarPorGrupo: (grupo: string) =>
       request(`/musculos/${grupo}`, { auth: true }),
   },
+
+  ranking: {
+    top3: (usuarioEmail: string) =>
+        request<{ musculo: string; ranking: string; pontuacao: number }[] >(
+            "/ranking/top3",
+            {
+                method: "POST",
+                auth: true,
+                body: JSON.stringify({ usuarioEmail })
+            }
+        ),
+
+    todos: (usuarioEmail: string) =>
+      request<{
+        grupos: Record<string, { 
+          rankingGrupo: string;
+          musculos: { musculo: string; ranking: string }[]
+        }>
+      }>("/ranking/todos", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({ usuarioEmail })
+      }),
+},
   
   inserirExercicio: {
     carregarDados: () =>
