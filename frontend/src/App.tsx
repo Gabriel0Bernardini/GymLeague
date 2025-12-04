@@ -1,7 +1,7 @@
 import { isAuthenticated } from "./libs/auth";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
-import Perfil from "./pages/Perfil"
+import Perfil from "./pages/Perfil";
 import Cadastro from "./pages/Cadastro";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import MeusTreinos from "./pages/MeusTreinos";
 import ExplorarRotinas from "./pages/ExplorarRotinas";
 import InserirExercicio from "./pages/InserirExercicio";
+import Ranking from "./pages/Ranking";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   return isAuthenticated() ? children : <Navigate to="/" replace />;
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/meus-treinos" element={<ProtectedRoute><MeusTreinos /></ProtectedRoute>} />
         <Route path="/explorar-rotinas" element={<ProtectedRoute><ExplorarRotinas/></ProtectedRoute>}/>
         <Route path="inserir-exercicio" element={<ProtectedRoute><InserirExercicio/></ProtectedRoute>} />
+        <Route path="/ranking" element={<ProtectedRoute><Ranking/></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
