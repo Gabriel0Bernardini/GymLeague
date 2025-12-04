@@ -142,14 +142,16 @@ export const api = {
         ),
 
     todos: (usuarioEmail: string) =>
-        request<{ grupos: Record<string, { musculo: string; ranking: string }[]> }>(
-            "/ranking/todos",
-            {
-                method: "POST",
-                auth: true,
-                body: JSON.stringify({ usuarioEmail })
-            }
-        ),
+      request<{
+        grupos: Record<string, { 
+          rankingGrupo: string;
+          musculos: { musculo: string; ranking: string }[]
+        }>
+      }>("/ranking/todos", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({ usuarioEmail })
+      }),
 },
   
   inserirExercicio: {
