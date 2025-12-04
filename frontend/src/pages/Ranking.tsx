@@ -20,7 +20,11 @@ export default function Ranking() {
   { musculo: string; ranking: string }[]>([]);
   
   const [grupos, setGrupos] = useState<
-  Record<string, { musculo: string; ranking: string }[]>>({});
+  Record<string, { 
+    rankingGrupo: string; 
+    musculos: { musculo: string; ranking: string }[]
+  }>
+>({});
 
   function handleLogout() {
     clearToken();
@@ -106,8 +110,23 @@ export default function Ranking() {
         </div>
 
         <div className="bg-white shadow rounded-lg p-5 flex justify-center items-center">
-          <div className="w-72 h-96 border rounded-lg flex items-center justify-center text-gray-500">
-            provavel lista de grupso musculartes
+          <div className="bg-white rounded-lg p-5 w-full">
+            <h2 className="text-xl font-bold">Todos os Músculos</h2>
+
+            <div className="space-y-4">
+              {Object.keys(grupos).map((grupo) => (
+                <div key={grupo} className="border p-3 rounded-lg">
+                
+                  <p className="font-bold text-lg mb-1">{grupo} — <span>{grupos[grupo].rankingGrupo}</span></p>
+
+                  <ul className="space-y-1">
+                    {grupos[grupo].musculos.map((m, i) => (
+                      <li key={i}>• {m.musculo} — {m.ranking}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
