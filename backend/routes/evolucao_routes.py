@@ -20,7 +20,7 @@ def get_treinoCompletoData():
         AND dataDoTreino <> '9999-12-31'
     """
     cursor.execute(SQL, (email,))
-    treinosData = cursor.fetchall()
+    treinosData = cursor.fetchone()
     
     for treino in treinosData:
         
@@ -73,12 +73,12 @@ def get_treinoCompletoData():
                 "series": series
             })
             
-    resposta.append({
-        "nomeTreino": nomeTreino,
-        "nomeRotina": nomeRotina,
-        "dataDoTreino": dataDoTreino,
-        "exercicios": lista_exercicios
-    })
+        resposta.append({
+            "nomeTreino": nomeTreino,
+            "nomeRotina": nomeRotina,
+            "dataDoTreino": dataDoTreino,
+            "exercicios": lista_exercicios
+        })
             
     cursor.close()
     conn.close()
