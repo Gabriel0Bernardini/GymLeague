@@ -48,7 +48,6 @@ async function request<T>(
 }
 
 
-
 export const api = {
   auth: {
     login: (payload: import("../type/dto").LoginRequestDTO) =>
@@ -181,5 +180,22 @@ export const api = {
         "/evolucao/percentualGordura",
         { auth: true }
       ),
+
+    treinoCompletoData: () =>
+      request<{
+        nomeTreino: string;
+        nomeRotina: string | null;
+        dataDoTreino: string;
+        exercicios: {
+          nome: string;
+          numeroSeries: number;
+          series: {
+            numero: number;
+            detalhe: string;
+            repeticoes: number;
+            carga: number;
+          }[];
+        }[];
+      }[]>("/evolucao/treinoCompletoData", { auth: true }),
   },
 };
