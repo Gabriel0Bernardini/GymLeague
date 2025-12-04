@@ -144,4 +144,26 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   },
+  treinar: {
+    getTreinosDaRotina: (emailCriador: string, nomeRotina: string) =>
+      request<any>(`/treinar/rotina/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeRotina)}`, { auth: true }),
+
+    iniciar: (payload: { nome_treino: string; email_criador_treino: string }) =>
+      request<any>(`/treinar/iniciar`, { method: "POST", auth: true, body: JSON.stringify(payload) }),
+
+    getExercicios: (emailCriador: string, nomeTreino: string) =>
+      request<any>(`/treinar/exercicios/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeTreino)}`, { auth: true }),
+
+    getSeries: (emailCriador: string, nomeTreino: string) =>
+      request<any>(`/treinar/series/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeTreino)}`, { auth: true }),
+
+    inserirSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "POST", auth: true, body: JSON.stringify(payload) }),
+
+    atualizarSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "PUT", auth: true, body: JSON.stringify(payload) }),
+
+    deletarSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "DELETE", auth: true, body: JSON.stringify(payload) }),
+  },
 };
