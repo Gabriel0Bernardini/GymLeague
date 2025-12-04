@@ -8,7 +8,7 @@ import PrivateRoute from "../components/auth/PrivateRoute";
 import TopBar from "../components/ui/TopBar";
 import Footer from "../components/ui/Footer";
 import Calendario from "../components/evolucao/Calendario";
-import Graficos from "../components/evolucao/Graficos";
+import Graficos from "../components/evolucao/Grafico";
 import ModalVisualizacaoTreino from "../components/evolucao/ModalVisualizacaoTreino";
 
 export default function Evolução() {
