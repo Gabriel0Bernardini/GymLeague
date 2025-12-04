@@ -1,6 +1,7 @@
 from db import get_conn
 from utils.auth import require_auth
 from flask import Blueprint, jsonify, request, g
+import mysql.connector
 
 evolucao_bp = Blueprint("evolucao", __name__, url_prefix="/evolucao")
 
@@ -83,3 +84,66 @@ def get_treinoCompletoData():
     conn.close()
 
     return jsonify(resposta), 200
+
+
+@evolucao_bp.get("/pesoCorporal")
+def get_evolucaoPesoCorporal():
+    try:
+        email = g.user['email']
+        conn = get_conn()
+        cursor = conn.cursor(dictionary=True)
+        
+        SQL = """
+            SELECT peso, dataPesagem
+            FROM HistoricoUsuario
+            WHERE fkEmailUsuario = %s
+            ORDER BY dataPesagem ASC
+        """
+        cursor.execute(SQL, (email,))
+        
+        rows = cursor.fetchall()
+        
+        return jsonify({"pesagens": rows})
+        
+    except mysql.connector.Error as db_err:
+        print("DB ERROR:", db_err)
+        return jsonify({"message": "Erro interno no BD"}), 500
+
+    except Exception as err:
+        print("SERVER ERROR:", err)
+        return jsonify({"message": "Erro no servidor"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+@evolucao_bp.get("/percentualGordura")
+def get_evolucaoPercentualGordura():
+    try:
+        email = g.user['email']
+        conn = get_conn()
+        cursor = conn.cursor(dictionary=True)
+        
+        SQL = """
+            SELECT percentual_gordura, dataPesagem
+            FROM HistoricoUsuario
+            WHERE fkEmailUsuario = %s
+            ORDER BY dataPesagem ASC
+        """
+        cursor.execute(SQL, (email,))
+        
+        rows = cursor.fetchall()
+        
+        return jsonify({"gordura": rows})
+        
+    except mysql.connector.Error as db_err:
+        print("DB ERROR:", db_err)
+        return jsonify({"message": "Erro interno no BD"}), 500
+
+    except Exception as err:
+        print("SERVER ERROR:", err)
+        return jsonify({"message": "Erro no servidor"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()

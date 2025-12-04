@@ -144,4 +144,18 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   },
+
+  evolucao: {
+    pesoCorporal: () =>
+      request<{ pesagens: { peso: number; dataPesagem: string }[] }>(
+        "/evolucao/pesoCorporal",
+        { auth: true }
+      ),
+
+    percentualGordura: () =>
+      request<{ gordura: { percentual_gordura: number; dataPesagem: string }[] }>(
+        "/evolucao/percentualGordura",
+        { auth: true }
+      ),
+  },
 };
