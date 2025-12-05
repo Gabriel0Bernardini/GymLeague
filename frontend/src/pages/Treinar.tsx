@@ -20,7 +20,6 @@ export default function Treinar() {
   const [series, setSeries] = useState<any[]>([]);
 
   const [formSerie, setFormSerie] = useState({
-    numero: 1,
     detalhe: "",
     repeticoes: 10,
     carga: 0,
@@ -29,6 +28,7 @@ export default function Treinar() {
 
   const [serieEmEdicao, setSerieEmEdicao] = useState<any | null>(null);
   const [modalEditar, setModalEditar] = useState(false);
+  const [notasTreino, setNotasTreino] = useState("");
 
   useEffect(() => {
     api.auth
@@ -79,10 +79,14 @@ export default function Treinar() {
   }
 
   async function handleAdicionarSerie() {
-    if (!treinoAtivo) return;
+    if (!treinoAtivo || !formSerie.nome_exercicio) return;
     try {
+      // calcular numero da serie (próximo número para este exercício)
+      const seriesDoExercicio = series.filter((s) => s.fk_nomeExercicio === formSerie.nome_exercicio);
+      const proximoNumero = seriesDoExercicio.length + 1;
+
       const payload = {
-        numero: formSerie.numero,
+        numero: proximoNumero,
         detalhe: formSerie.detalhe || null,
         repeticoes: formSerie.repeticoes,
         carga: formSerie.carga,
@@ -99,7 +103,6 @@ export default function Treinar() {
 
       // limpar formulário
       setFormSerie({
-        numero: Math.max(...series.map(s => s.numero || 0), 0) + 1,
         detalhe: "",
         repeticoes: 10,
         carga: 0,
@@ -226,22 +229,93 @@ export default function Treinar() {
                       <div className="font-medium">Treino: {treinoAtivo.nome_treino ?? treinoAtivo.nome}</div>
                     </div>
 
+                    {/* Indicador de Progresso */}
+                    <div className="mb-4 p-3 bg-sky-50 rounded border border-sky-200">
+                      <div className="text-sm font-semibold mb-2">Progresso</div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm">
+                          {series.length} / {exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0)} séries
+                        </span>
+                        <span className="text-xs bg-sky-500 text-white px-2 py-1 rounded">
+                          {Math.round((series.length / Math.max(exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0), 1)) * 100)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded h-2">
+                        <div
+                          className="bg-sky-500 h-2 rounded transition-all"
+                          style={{
+                            width: `${Math.round((series.length / Math.max(exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0), 1)) * 100)}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
                     <div className="mb-3">
-                      <div className="text-sm font-semibold">Exercícios</div>
-                      <ul className="list-disc pl-5 text-sm">
-                        {exercicios.map((ex, i) => (
-                          <li key={i}>{ex.nome_exercicio ?? ex.nome}</li>
-                        ))}
-                      </ul>
+                      <div className="text-sm font-semibold mb-2">Exercícios & Séries</div>
+                      <div className="space-y-3 max-h-64 overflow-auto text-sm">
+                        {exercicios.map((ex, i) => {
+                          const seriesDoExercicio = series.filter((s) => s.fk_nomeExercicio === ex.nome_exercicio);
+                          const seriesExtras = Math.max(0, seriesDoExercicio.length - (ex.series_plano || 0));
+                          return (
+                            <div key={i} className="p-2 border rounded bg-gray-50">
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="font-medium">{ex.nome_exercicio}</div>
+                                <div className="text-xs">
+                                  {seriesDoExercicio.length >= (ex.series_plano || 0) ? (
+                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">
+                                      ✓ {seriesDoExercicio.length}/{ex.series_plano}
+                                      {seriesExtras > 0 && ` +${seriesExtras}🔥`}
+                                    </span>
+                                  ) : (
+                                    <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                                      {seriesDoExercicio.length}/{ex.series_plano}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-600 mb-2">
+                                {ex.descricao && `📋 ${ex.descricao}`}
+                              </div>
+                              <div className="space-y-1">
+                                {Array.from({ length: Math.max(ex.series_plano, seriesDoExercicio.length) }).map((_, sIdx) => {
+                                  const serie = seriesDoExercicio[sIdx];
+                                  const isExtra = sIdx >= (ex.series_plano || 0);
+                                  return (
+                                    <div
+                                      key={sIdx}
+                                      className={`flex justify-between items-center p-1 rounded text-xs ${
+                                        isExtra ? "bg-orange-50 border border-orange-200" : "bg-white"
+                                      }`}
+                                    >
+                                      <span className="font-medium">
+                                        {serie ? (
+                                          <>
+                                            ✓ Série {sIdx + 1}
+                                            {isExtra && " 🔥 (Extra)"}
+                                          </>
+                                        ) : (
+                                          `○ Série ${sIdx + 1}`
+                                        )}
+                                      </span>
+                                      <span className="text-gray-600">
+                                        {serie ? `${serie.repeticoes} reps • ${serie.carga}kg` : "—"}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="mb-3">
                       <div className="text-sm font-semibold">Adicionar Série</div>
                       <div className="grid grid-cols-2 gap-2 mt-2">
-                        <input className="p-2 border rounded" placeholder="Número" type="number" value={formSerie.numero} onChange={(e) => setFormSerie({ ...formSerie, numero: Number(e.target.value) })} />
                         <input className="p-2 border rounded" placeholder="Repetições" type="number" value={formSerie.repeticoes} onChange={(e) => setFormSerie({ ...formSerie, repeticoes: Number(e.target.value) })} />
-                        <input className="p-2 border rounded" placeholder="Carga" type="number" value={formSerie.carga} onChange={(e) => setFormSerie({ ...formSerie, carga: Number(e.target.value) })} />
-                        <select className="p-2 border rounded" value={formSerie.nome_exercicio} onChange={(e) => setFormSerie({ ...formSerie, nome_exercicio: e.target.value })}>
+                        <input className="p-2 border rounded" placeholder="Carga (kg)" type="number" step="0.5" value={formSerie.carga} onChange={(e) => setFormSerie({ ...formSerie, carga: Number(e.target.value) })} />
+                        <select className="col-span-2 p-2 border rounded" value={formSerie.nome_exercicio} onChange={(e) => setFormSerie({ ...formSerie, nome_exercicio: e.target.value })}>
                           <option value="">-- Escolher exercício --</option>
                           {exercicios.map((ex, i) => (
                             <option key={i} value={ex.nome_exercicio ?? ex.nome}>{ex.nome_exercicio ?? ex.nome}</option>
@@ -254,9 +328,21 @@ export default function Treinar() {
                       </div>
                     </div>
 
+                    {/* Notas do Treino */}
+                    <div className="mb-3">
+                      <label className="text-sm font-semibold mb-1 block">Notas do Treino</label>
+                      <textarea
+                        className="w-full p-2 border rounded text-xs"
+                        placeholder="Como foi? Ex: Ótimo, muita bomba... Braços cansados..."
+                        rows={2}
+                        value={notasTreino}
+                        onChange={(e) => setNotasTreino(e.target.value)}
+                      />
+                    </div>
+
                     <div>
                       <div className="text-sm font-semibold mb-2">Séries do Dia</div>
-                      <div className="space-y-2 max-h-48 overflow-auto text-sm">
+                      <div className="space-y-2 max-h-32 overflow-auto text-sm">
                         {series.length === 0 && <div className="text-gray-500">Nenhuma série registrada hoje.</div>}
                         {series.map((s, i) => (
                           <div key={i} className="p-2 border rounded flex justify-between items-center">
