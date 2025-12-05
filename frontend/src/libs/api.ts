@@ -172,13 +172,6 @@ export const api = {
         auth: true,
         body: JSON.stringify({ usuarioEmail, peso }),
       }),
-
-    percentualGordura: (usuarioEmail: string, percentual_gordura: number) =>
-      request<{ mensagem: string }>("/editar/percentual_gordura", {
-        method: "POST",
-        auth: true,
-        body: JSON.stringify({ usuarioEmail, percentual_gordura }),
-      }),
   },
 
   inserirExercicio: {
@@ -216,7 +209,7 @@ export const api = {
 
     deletarSerie: (payload: any) =>
       request<any>(`/treinar/serie`, { method: "DELETE", auth: true, body: JSON.stringify(payload) }),
-
+  },
   evolucao: {
     pesoCorporal: () =>
       request<{ pesagens: { peso: number; dataPesagem: string }[] }>(
@@ -246,5 +239,23 @@ export const api = {
           }[];
         }[];
       }[]>("/evolucao/treinoCompletoData", { auth: true }),
+
+    exerciciosRealizados: () =>
+      request<{
+        exercicios: { nome: string; ultimaData: string | null }[];
+      }>("/evolucao/exerciciosRealizados", { auth: true }),
+
+    evolucaoExercicio: (nomeExercicio: string) =>
+      request<{
+        exercicio: string;
+        evolucao: {
+          data: string;
+          nomeTreino: string;
+          pesoMaximo: number;
+          repeticoes: number[];
+        }[];
+      }>(`/evolucao/evolucaoExercicio/${encodeURIComponent(nomeExercicio)}`, {
+        auth: true,
+      }),
   },
 };
