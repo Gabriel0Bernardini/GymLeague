@@ -10,6 +10,7 @@ import Footer from "../components/ui/Footer";
 import Calendario from "../components/evolucao/Calendario";
 import Graficos from "../components/evolucao/Grafico";
 import ModalVisualizacaoTreino from "../components/evolucao/ModalVisualizacaoTreino";
+import SeletorExercicio from "../components/evolucao/SeletorExercicio";
 
 export default function Evolução() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function Evolução() {
   const [ano, setAno] = useState(new Date().getFullYear());
 
   // Estado dos gráficos
-  const [tipoGrafico, setTipoGrafico] = useState<"peso" | "gordura">("peso");
+  const [tipoGrafico, setTipoGrafico] = useState<"peso" | "gordura" | "exercicio">("peso");
 
   // Dados dos treinos
   const [treinosComData, setTreinosComData] = useState<any[]>([]);
@@ -35,6 +36,21 @@ export default function Evolução() {
     { percentual_gordura: number; dataPesagem: string }[]
   >([]);
   const [loadingEvolucao, setLoadingEvolucao] = useState(false);
+
+  // Dados de exercício
+  const [exerciciosRealizados, setExerciciosRealizados] = useState<
+    { nome: string; ultimaData: string | null }[]
+  >([]);
+  const [exercicioSelecionado, setExercicioSelecionado] = useState<string | null>(null);
+  const [dadosExercicio, setDadosExercicio] = useState<
+    {
+      data: string;
+      nomeTreino: string;
+      pesoMaximo: number;
+      repeticoes: number[];
+    }[]
+  >([]);
+  const [loadingExercicio, setLoadingExercicio] = useState(false);
 
   // Modal de visualização de treino
   const [modalAberto, setModalAberto] = useState(false);
@@ -57,6 +73,7 @@ export default function Evolução() {
 
     carregarTreinos();
     carregarDadosEvolucao();
+    carregarExerciciosRealizados();
   }, []);
 
   async function carregarTreinos() {
@@ -91,6 +108,30 @@ export default function Evolução() {
       setDadosGordura([]);
     } finally {
       setLoadingEvolucao(false);
+    }
+  }
+
+  async function carregarExerciciosRealizados() {
+    try {
+      const res = await (api.evolucao as any).exerciciosRealizados();
+      setExerciciosRealizados(res?.exercicios || []);
+    } catch (err) {
+      console.error("Erro ao carregar exercícios:", err);
+      setExerciciosRealizados([]);
+    }
+  }
+
+  async function handleSelecionarExercicio(nomeExercicio: string) {
+    setExercicioSelecionado(nomeExercicio);
+    setLoadingExercicio(true);
+    try {
+      const res = await (api.evolucao as any).evolucaoExercicio(nomeExercicio);
+      setDadosExercicio(res?.evolucao || []);
+    } catch (err) {
+      console.error("Erro ao carregar evolução do exercício:", err);
+      setDadosExercicio([]);
+    } finally {
+      setLoadingExercicio(false);
     }
   }
 
@@ -183,12 +224,28 @@ export default function Evolução() {
                     <p className="text-gray-500">Carregando gráficos...</p>
                   </div>
                 ) : (
-                  <Graficos
-                    tipoGrafico={tipoGrafico}
-                    onMudarTipo={setTipoGrafico}
-                    dadosPeso={dadosPeso}
-                    dadosGordura={dadosGordura}
-                  />
+                  <>
+                    {/* Seletor de exercício (apenas quando tipoGrafico é "exercicio") */}
+                    {tipoGrafico === "exercicio" && (
+                      <div className="mb-6">
+                        <SeletorExercicio
+                          exercicios={exerciciosRealizados}
+                          selecionado={exercicioSelecionado}
+                          onSelecionar={handleSelecionarExercicio}
+                          loading={loadingExercicio}
+                        />
+                      </div>
+                    )}
+
+                    <Graficos
+                      tipoGrafico={tipoGrafico}
+                      onMudarTipo={setTipoGrafico}
+                      dadosPeso={dadosPeso}
+                      dadosGordura={dadosGordura}
+                      dadosExercicio={dadosExercicio}
+                      exercicioSelecionado={exercicioSelecionado}
+                    />
+                  </>
                 )}
               </div>
             )}
