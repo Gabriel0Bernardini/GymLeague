@@ -48,7 +48,6 @@ async function request<T>(
 }
 
 
-
 export const api = {
   auth: {
     login: (payload: import("../type/dto").LoginRequestDTO) =>
@@ -73,6 +72,18 @@ export const api = {
       request<{ email: string; pNome: string }>("/auth/me", {
         auth: true,
       }),
+  },
+
+  users: {
+    get: (email: string) =>
+      request<{
+        email: string;
+        pNome: string;
+        dataNascimento: string | null;
+        peso: number | null;
+        altura: number | null;
+        percentual_gordura: number | null;
+      }>(`/users/${email}`, { auth: true }),
   },
 
   explorarRotinas: {
@@ -129,7 +140,40 @@ export const api = {
     listarPorGrupo: (grupo: string) =>
       request(`/musculos/${grupo}`, { auth: true }),
   },
+
+  ranking: {
+    top3: (usuarioEmail: string) =>
+        request<{ musculo: string; ranking: string; pontuacao: number }[] >(
+            "/ranking/top3",
+            {
+                method: "POST",
+                auth: true,
+                body: JSON.stringify({ usuarioEmail })
+            }
+        ),
+
+    todos: (usuarioEmail: string) =>
+      request<{
+        grupos: Record<string, { 
+          rankingGrupo: string;
+          musculos: { musculo: string; ranking: string }[]
+        }>
+      }>("/ranking/todos", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({ usuarioEmail })
+      }),
+  },
   
+  editar: {
+    peso: (usuarioEmail: string, peso: number) =>
+      request<{ mensagem: string }>("/editar/peso", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, peso }),
+      }),
+  },
+
   inserirExercicio: {
     carregarDados: () =>
       request<{
@@ -165,5 +209,35 @@ export const api = {
 
     deletarSerie: (payload: any) =>
       request<any>(`/treinar/serie`, { method: "DELETE", auth: true, body: JSON.stringify(payload) }),
+
+  evolucao: {
+    pesoCorporal: () =>
+      request<{ pesagens: { peso: number; dataPesagem: string }[] }>(
+        "/evolucao/pesoCorporal",
+        { auth: true }
+      ),
+
+    percentualGordura: () =>
+      request<{ gordura: { percentual_gordura: number; dataPesagem: string }[] }>(
+        "/evolucao/percentualGordura",
+        { auth: true }
+      ),
+
+    treinoCompletoData: () =>
+      request<{
+        nomeTreino: string;
+        nomeRotina: string | null;
+        dataDoTreino: string;
+        exercicios: {
+          nome: string;
+          numeroSeries: number;
+          series: {
+            numero: number;
+            detalhe: string;
+            repeticoes: number;
+            carga: number;
+          }[];
+        }[];
+      }[]>("/evolucao/treinoCompletoData", { auth: true }),
   },
 };
