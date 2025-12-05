@@ -11,6 +11,7 @@ from routes.grupos_routes import grupos_bp
 from routes.musculos_routes import musculos_bp
 from routes.inserirExercicio import inserirExercicios_bp
 from routes.explorarRotinas import explorarRotinas_bp
+from routes.treinar_routes import treinar_bp
 from routes.ranking import ranking_bp
 from routes.evolucao_routes import evolucao_bp
 from routes.editar import editar_bp
@@ -31,6 +32,7 @@ app.register_blueprint(grupos_bp)
 app.register_blueprint(musculos_bp)
 app.register_blueprint(inserirExercicios_bp)
 app.register_blueprint(explorarRotinas_bp)
+app.register_blueprint(treinar_bp)
 app.register_blueprint(ranking_bp)
 app.register_blueprint(evolucao_bp)
 app.register_blueprint(editar_bp)
