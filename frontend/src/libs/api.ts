@@ -128,6 +128,28 @@ export const api = {
     
   },
 
+  metas: {
+    listar: (usuarioEmail: string) =>
+      request<any[]>("/metas/", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail }),
+      }),
+
+    criar: (payload: {
+      usuarioEmail: string;
+      titulo: string;
+      descricao: string;
+      valorMeta: number;
+      tipoMeta: string;
+    }) =>
+      request("/metas/criar", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),
+  },
+
   exercicios: {
     listar: () => request("/exercicios/", { auth: true }),
   },
@@ -171,6 +193,12 @@ export const api = {
         method: "POST",
         auth: true,
         body: JSON.stringify({ usuarioEmail, peso }),
+      }),
+    percentualGordura: (usuarioEmail: string, percentual_gordura: number) =>
+      request<{ mensagem: string }>("/editar/percentual_gordura", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, percentual_gordura }),
       }),
   },
 
@@ -257,5 +285,5 @@ export const api = {
       }>(`/evolucao/evolucaoExercicio/${encodeURIComponent(nomeExercicio)}`, {
         auth: true,
       }),
-  },
+  },  
 };
