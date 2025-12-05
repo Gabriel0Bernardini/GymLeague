@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import MeusTreinos from "./pages/MeusTreinos";
 import ExplorarRotinas from "./pages/ExplorarRotinas";
 import InserirExercicio from "./pages/InserirExercicio";
+import Treinar from "./pages/Treinar";
 import Ranking from "./pages/Ranking";
 import Evolução from "./pages/Evolução";
 
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/meus-treinos" element={<ProtectedRoute><MeusTreinos /></ProtectedRoute>} />
         <Route path="/evolucao" element={<ProtectedRoute><Evolução /></ProtectedRoute>} />
         <Route path="/explorar-rotinas" element={<ProtectedRoute><ExplorarRotinas/></ProtectedRoute>}/>
+        <Route path="/treinar" element={<ProtectedRoute><Treinar/></ProtectedRoute>} />
         <Route path="inserir-exercicio" element={<ProtectedRoute><InserirExercicio/></ProtectedRoute>} />
         <Route path="/ranking" element={<ProtectedRoute><Ranking/></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
