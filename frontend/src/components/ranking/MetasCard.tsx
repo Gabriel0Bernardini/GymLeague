@@ -1,50 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "../../libs/api";
 
 type Meta = {
-  tipo: "Peso" | "Percentual de gordura" | "Progressão de carga";
+  tipo: "Peso" | "Percentual de gordura";
   objetivo: number;
   atual: number;
-  exercicio?: string;
+  descricao?: string;
 };
 
-const EXERCICIOS = [
-  "Supino reto",
-  "Agachamento",
-  "Rosca direta",
-  "Remada curvada",
-  "Desenvolvimento militar",
-];
-
 export default function MetasCard() {
-  const [metas, setMetas] = useState<Meta[]>([
-    { tipo: "Peso", objetivo: 80, atual: 75 },
-    { tipo: "Percentual de gordura", objetivo: 15, atual: 20 },
-    { tipo: "Progressão de carga", objetivo: 100, atual: 80, exercicio: "Supino reto" },
-  ]);
+  const [metas, setMetas] = useState<Meta[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [tipoMeta, setTipoMeta] = useState<Meta["tipo"]>("Peso");
   const [objetivo, setObjetivo] = useState<number>(0);
-  const [exercicio, setExercicio] = useState<string>(EXERCICIOS[0]);
   const [atual, setAtual] = useState<number>(0);
 
   // Para edição
   const [editIdx, setEditIdx] = useState<number | null>(null);
 
-  function handleAddMeta() {
-    let novaMeta: Meta = { tipo: tipoMeta, objetivo, atual };
-    if (tipoMeta === "Progressão de carga") {
-      novaMeta.exercicio = exercicio;
+  useEffect(() => {
+    async function carregar() {
+      const me = await api.auth.me();
+      const dados = await api.metas.listar(me.email);
+      const user = await api.users.get(me.email);
+
+      const adaptadas = dados.map(m => {
+        let atual = 0;
+        let tipo: "Peso" | "Percentual de gordura";
+
+        if (m.tipo === "P") {
+          tipo = "Peso";
+          atual = user.peso || 0;
+        } else {
+          tipo = "Percentual de gordura";
+          atual = (user.percentual_gordura || 0) * 100;
+        }
+
+        return {
+          tipo,
+          objetivo: m.objetivo,
+          atual,
+          descricao: m.descricao || undefined
+        };
+      });
+
+      setMetas(adaptadas);
     }
-    setMetas([...metas, novaMeta]);
+
+    carregar();
+  }, []);
+
+  async function handleAddMeta() {
+  try {
+    const teste = await api.auth.me();
+    const email = teste.email;
+    if (!email) {
+      console.error("Nenhum email no localStorage");
+      return;
+    }
+
+    let descricaoMeta = "";
+    const tipoBanco = tipoMeta === "Peso" ? "P" : "G";
+
+    const payload = {
+      usuarioEmail: email,
+      titulo: tipoMeta, 
+      descricao: descricaoMeta,
+      valorMeta: objetivo,
+      tipoMeta: tipoBanco,
+    };
+
+    console.log("DEBUG enviar payload /metas/criar:", payload);
+    const resp = await api.metas.criar(payload);
+    console.log("DEBUG resposta /metas/criar:", resp);
+
+    const novas = await api.metas.listar(email);
+    const me = await api.auth.me();
+    const user = await api.users.get(me.email);
+
+    const adaptadas = novas.map((m: any) => {
+      let atual = 0;
+      let tipo: "Peso" | "Percentual de gordura";
+      if (m.tipo === "P") {
+        tipo = "Peso";
+        atual = user.peso || 0;
+      } else {
+        tipo = "Percentual de gordura";
+        atual = (user.percentual_gordura || 0) * 100;
+      }
+      return {
+        tipo,
+        objetivo: m.objetivo,
+        atual,
+        descricao: m.descricao || undefined,
+      } as Meta;
+    });
+
+    setMetas(adaptadas);
     fecharModal();
+  } catch (err) {
+    console.error("Erro ao criar meta:", err);
+    alert("Erro ao criar meta, veja o console para detalhes");
   }
+}
 
   function handleEditMeta() {
     if (editIdx === null) return;
     let novaMeta: Meta = { tipo: tipoMeta, objetivo, atual };
-    if (tipoMeta === "Progressão de carga") {
-      novaMeta.exercicio = exercicio;
-    }
     setMetas(metas.map((m, idx) => (idx === editIdx ? novaMeta : m)));
     fecharModal();
   }
@@ -55,7 +117,6 @@ export default function MetasCard() {
     setTipoMeta(meta.tipo);
     setObjetivo(meta.objetivo);
     setAtual(meta.atual);
-    setExercicio(meta.exercicio || EXERCICIOS[0]);
     setShowModal(true);
   }
 
@@ -64,7 +125,6 @@ export default function MetasCard() {
     setTipoMeta("Peso");
     setObjetivo(0);
     setAtual(0);
-    setExercicio(EXERCICIOS[0]);
     setEditIdx(null);
   }
 
@@ -88,18 +148,16 @@ export default function MetasCard() {
           {metas.map((meta, idx) => {
             const menor = meta.atual < meta.objetivo;
             let progresso = Math.min((meta.atual / meta.objetivo) * 100, 100);
-            if (menor && meta.tipo !== "Progressão de carga") {
+            if (menor) {
               progresso;
-            } else if (!menor && meta.tipo !== "Progressão de carga") {
+            } else {
               progresso = Math.min((meta.objetivo / meta.atual) * 100, 100);
             }
             return (
               <li key={idx} className="p-3 bg-gray-50 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">
-                    {meta.tipo === "Progressão de carga"
-                      ? `${meta.tipo} (${meta.exercicio})`
-                      : meta.tipo}
+                    {meta.tipo}
                   </span>
                   <span className="text-sm text-gray-600">
                     {meta.atual} / {meta.objetivo}{" "}
@@ -156,7 +214,6 @@ export default function MetasCard() {
                 <option value="Percentual de gordura">
                   Percentual de gordura
                 </option>
-                <option value="Progressão de carga">Progressão de carga</option>
               </select>
             </div>
             {tipoMeta === "Peso" && (
@@ -185,33 +242,6 @@ export default function MetasCard() {
                   onChange={(e) => setObjetivo(Number(e.target.value))}
                   min={0}
                   max={100}
-                />
-              </div>
-            )}
-            {tipoMeta === "Progressão de carga" && (
-              <div className="mb-3">
-                <label className="block mb-1 font-semibold">Exercício</label>
-                <select
-                  className="border rounded px-2 py-1 w-full"
-                  value={exercicio}
-                  onChange={(e) => setExercicio(e.target.value)}
-                  disabled={editIdx !== null} // Não permite trocar exercício ao editar
-                >
-                  {EXERCICIOS.map((ex, idx) => (
-                    <option key={idx} value={ex}>
-                      {ex}
-                    </option>
-                  ))}
-                </select>
-                <label className="block mt-2 mb-1 font-semibold">
-                  Carga desejada (kg)
-                </label>
-                <input
-                  type="number"
-                  className="border rounded px-2 py-1 w-full"
-                  value={objetivo}
-                  onChange={(e) => setObjetivo(Number(e.target.value))}
-                  min={0}
                 />
               </div>
             )}

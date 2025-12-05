@@ -15,6 +15,7 @@ from routes.treinar_routes import treinar_bp
 from routes.ranking import ranking_bp
 from routes.evolucao_routes import evolucao_bp
 from routes.editar import editar_bp
+from routes.metas import metas_bp
 
 load_dotenv()
 
@@ -36,6 +37,7 @@ app.register_blueprint(treinar_bp)
 app.register_blueprint(ranking_bp)
 app.register_blueprint(evolucao_bp)
 app.register_blueprint(editar_bp)
+app.register_blueprint(metas_bp)
 
 @app.get("/health")
 def health():
