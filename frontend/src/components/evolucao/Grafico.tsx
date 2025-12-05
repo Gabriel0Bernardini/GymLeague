@@ -11,10 +11,17 @@ import {
 } from "recharts";
 
 type GraficosProps = {
-  tipoGrafico: "peso" | "gordura";
-  onMudarTipo: (tipo: "peso" | "gordura") => void;
+  tipoGrafico: "peso" | "gordura" | "exercicio";
+  onMudarTipo: (tipo: "peso" | "gordura" | "exercicio") => void;
   dadosPeso: { peso: number; dataPesagem: string }[];
   dadosGordura: { percentual_gordura: number; dataPesagem: string }[];
+  dadosExercicio?: {
+    data: string;
+    nomeTreino: string;
+    pesoMaximo: number;
+    repeticoes: number[];
+  }[];
+  exercicioSelecionado?: string | null;
 };
 
 export default function Graficos({
@@ -22,6 +29,8 @@ export default function Graficos({
   onMudarTipo,
   dadosPeso,
   dadosGordura,
+  dadosExercicio = [],
+  exercicioSelecionado,
 }: GraficosProps) {
   // Transformar dados para formato compatível com recharts
   const dadosGrafico = useMemo(() => {
@@ -32,15 +41,24 @@ export default function Graficos({
         timestamp: new Date(d.dataPesagem).getTime(),
       }));
       return mapeados;
-    } else {
+    } else if (tipoGrafico === "gordura") {
       const mapeados = dadosGordura.map((d) => ({
         data: new Date(d.dataPesagem).toLocaleDateString("pt-BR"),
         valor: parseFloat(String(d.percentual_gordura)),
         timestamp: new Date(d.dataPesagem).getTime(),
       }));
       return mapeados;
+    } else {
+      // Exercício
+      const mapeados = dadosExercicio.map((d) => ({
+        data: new Date(d.data).toLocaleDateString("pt-BR"),
+        valor: d.pesoMaximo,
+        timestamp: new Date(d.data).getTime(),
+        nomeTreino: d.nomeTreino,
+      }));
+      return mapeados;
     }
-  }, [tipoGrafico, dadosPeso, dadosGordura]);
+  }, [tipoGrafico, dadosPeso, dadosGordura, dadosExercicio]);
 
   // Ordenar por timestamp
   const dadosOrdenados = useMemo(() => {
@@ -48,12 +66,17 @@ export default function Graficos({
     return sorted;
   }, [dadosGrafico]);
 
-  const labelYAxis = tipoGrafico === "peso" ? "Peso (kg)" : "Percentual Gordura (%)";
+  const labelYAxis =
+    tipoGrafico === "peso"
+      ? "Peso (kg)"
+      : tipoGrafico === "gordura"
+      ? "Percentual Gordura (%)"
+      : "Carga (kg)";
 
   return (
     <div className="w-full h-full flex flex-col">
       {/* Filtros */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         <button
           onClick={() => onMudarTipo("peso")}
           className={`px-6 py-2 rounded-lg font-semibold transition ${
@@ -74,6 +97,16 @@ export default function Graficos({
         >
           Percentual de Gordura
         </button>
+        <button
+          onClick={() => onMudarTipo("exercicio")}
+          className={`px-6 py-2 rounded-lg font-semibold transition ${
+            tipoGrafico === "exercicio"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Exercício
+        </button>
       </div>
 
       {/* Gráfico */}
@@ -88,7 +121,11 @@ export default function Graficos({
               width: "100%",
             }}
           >
-            <p style={{ color: "#999", fontSize: "18px" }}>Nenhum dado disponível para este filtro.</p>
+            <p style={{ color: "#999", fontSize: "18px" }}>
+              {tipoGrafico === "exercicio" && !exercicioSelecionado
+                ? "Selecione um exercício para visualizar sua evolução."
+                : "Nenhum dado disponível para este filtro."}
+            </p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -108,16 +145,30 @@ export default function Graficos({
               <Tooltip
                 formatter={(value: any) => [
                   typeof value === "number" ? value.toFixed(2) : value,
-                  tipoGrafico === "peso" ? "Peso (kg)" : "Gordura (%)",
+                  labelYAxis,
                 ]}
               />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="valor"
-                stroke={tipoGrafico === "peso" ? "#3b82f6" : "#ef4444"}
-                dot={{ fill: tipoGrafico === "peso" ? "#3b82f6" : "#ef4444", r: 4 }}
-                name={tipoGrafico === "peso" ? "Peso (kg)" : "Gordura (%)"}
+                stroke={
+                  tipoGrafico === "peso"
+                    ? "#3b82f6"
+                    : tipoGrafico === "gordura"
+                    ? "#ef4444"
+                    : "#10b981"
+                }
+                dot={{
+                  fill:
+                    tipoGrafico === "peso"
+                      ? "#3b82f6"
+                      : tipoGrafico === "gordura"
+                      ? "#ef4444"
+                      : "#10b981",
+                  r: 4,
+                }}
+                name={labelYAxis}
                 isAnimationActive={true}
               />
             </LineChart>
