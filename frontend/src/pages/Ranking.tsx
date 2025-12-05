@@ -7,6 +7,9 @@ import TopBar from "../components/ui/TopBar";
 import RankingCard from "../components/ranking/RankingCard";
 import PesoAtualCardEditavel from "../components/ranking/PesoAtualCardEditavel";
 import PercentualGCardEditavel from "../components/ranking/PercentualGCardEditavel";
+import MetasCard from "../components/ranking/MetasCard";
+import TodosMusculosCard from "../components/ranking/TodosMusculosCard";
+import Top3MusculosCard from "../components/ranking/Top3MusculosCard";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Footer from "../components/ui/Footer";
@@ -64,61 +67,15 @@ export default function Ranking() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <div className="bg-white shadow rounded-lg p-5">
-            <h2 className="text-xl font-bold mb-3">Top Ranking Muscles</h2>
-
-            <ul className="space-y-3">
-              {top3.map((m, i) => (
-                <li key={i} className="p-3 bg-gray-50 border rounded-lg">
-                  <p className="font-semibold">{m.musculo} — {m.ranking}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-white shadow rounded-lg p-5">
-            <h2 className="text-xl font-bold mb-3">Metas</h2>
-
-            <div className="space-y-4">
-              <div>
-                <p className="font-semibold">Meta: Braço do Ramon Dino — 168cm</p>
-                <p className="text-sm">Progresso atual: 27cm</p>
-              </div>
-
-              <div>
-                <p className="font-semibold">Meta: Perninhas do Lucas — 8cm</p>
-                <p className="text-sm">Progresso atual: 27cm</p>
-              </div>
-
-              <div>
-                <p className="font-semibold">Meta: Rank — Diamante</p>
-                <p className="text-sm">Progresso atual: Plástico</p>
-              </div>
-            </div>
-          </div>
+          <Top3MusculosCard top3={top3} />
+          <MetasCard />
         </div>
 
         <div className="bg-white shadow rounded-lg p-5 flex justify-center items-center">
-          <div className="bg-white rounded-lg p-5 w-full">
-            <h2 className="text-xl font-bold">Todos os Músculos</h2>
-
-            <div className="space-y-4">
-              {Object.keys(grupos).map((grupo) => (
-                <div key={grupo} className="border p-3 rounded-lg">
-                
-                  <p className="font-bold text-lg mb-1">{grupo} — <span>{grupos[grupo].rankingGrupo}</span></p>
-
-                  <ul className="space-y-1">
-                    {grupos[grupo].musculos.map((m, i) => (
-                      <li key={i}>• {m.musculo} — {m.ranking}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TodosMusculosCard grupos={grupos} />
         </div>
-
       </div>
+       <Footer></Footer>
     </div>
   );
 }
