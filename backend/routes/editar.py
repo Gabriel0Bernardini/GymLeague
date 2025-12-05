@@ -45,3 +45,56 @@ def editar_peso():
     finally:
         cursor.close()
         conn.close()
+
+
+@editar_bp.post("/percentual_gordura")
+def editar_percentual_gordura():
+    conn = get_conn()
+    cursor = conn.cursor(dictionary=True)
+    dados = request.get_json()
+    if dados is None:
+        return jsonify({"erro": "Body JSON ausente"}), 400
+    usuarioEmail = dados.get("usuarioEmail")
+    if usuarioEmail is None:
+        return jsonify({"erro": "usuarioEmail ausente"}), 400
+    
+    novoPercentual = dados.get("percentual_gordura")
+    try:
+        SQL = """
+        UPDATE Usuario SET percentual_gordura = %s
+        WHERE email = %s"""    
+
+        cursor.execute(SQL, (novoPercentual, usuarioEmail))
+        
+        SQL = """SELECT peso
+        FROM Usuario
+        WHERE email = %s"""
+        cursor.execute(SQL, (usuarioEmail,))
+        resultado = cursor.fetchone()
+        peso = resultado["peso"]
+
+        SQL = """ SELECT dataPesagem FROM HistoricoUsuario
+                  WHERE fkEmailUsuario = %s AND dataPesagem = CURRENT_DATE()"""
+        cursor.execute(SQL, (usuarioEmail,))
+        resultado = cursor.fetchone()
+        if resultado is not None:
+            SQL = """ UPDATE HistoricoUsuario
+                      SET percentual_gordura = %s
+                      WHERE fkEmailUsuario = %s AND dataPesagem = CURRENT_DATE()"""
+            cursor.execute(SQL, (novoPercentual, usuarioEmail))
+        else:
+            SQL = """
+            INSERT INTO HistoricoUsuario(peso,dataPesagem, percentual_gordura, fkEmailUsuario)
+            VALUES(%s, CURRENT_DATE(), %s, %s)"""
+            cursor.execute(SQL, (peso, novoPercentual, usuarioEmail))
+
+        conn.commit()
+        return jsonify({"mensagem": "Percentual de gordura atualizado com sucesso"}), 200
+    except Exception as e:
+        print("ERRO NO /editar/percentual_gordura:", str(e))
+        import traceback
+        traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()

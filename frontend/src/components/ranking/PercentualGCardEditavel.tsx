@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "../../libs/api";
 
-export type CardpercentualAtualProps = {
-  percentualAtual?: number;
-};
-
-export default function percentualAtualCard({
-  percentualAtual = 20, // placeholder default
-}: CardpercentualAtualProps) {
+export default function percentualAtualCard() {
   const [editMode, setEditMode] = useState(false);
-  const [percentual, setpercentual] = useState(percentualAtual);
+  const [percentual, setPercentual] = useState<number | null>(null);
 
-  function handleSave() {
+  useEffect(() => {
+    async function carregarPercentual() {
+      const me = await api.auth.me();
+      const dados = await api.users.get(me.email);
+      const valor = dados.percentual_gordura ?? 0;   
+      setPercentual(valor * 100);
+    }
+    carregarPercentual();
+  }, []);
+
+  async function handleSave() {
+    if (percentual === null) return;
+    const me = await api.auth.me();
+    const valorDecimal = percentual / 100; 
+    await api.editar.percentualGordura(me.email, valorDecimal);
     setEditMode(false);
-    // TODO: Integrar com backend para salvar percentual
   }
+  if (percentual === null) return <p>Carregando...</p>;
 
   return (
     <div className="p-4">
@@ -40,7 +49,7 @@ export default function percentualAtualCard({
                 type="number"
                 className="border rounded px-2 py-1 w-20 text-xl font-bold"
                 value={percentual}
-                onChange={(e) => setpercentual(Number(e.target.value))}
+                onChange={(e) => setPercentual(Number(e.target.value))}
                 min={0}
               />
               <span className="text-gray-700 text-xl font-bold">%</span>
@@ -54,7 +63,6 @@ export default function percentualAtualCard({
                 className="ml-1 px-2 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded text-sm"
                 onClick={() => {
                   setEditMode(false);
-                  setpercentual(percentualAtual);
                 }}
               >
                 Cancelar

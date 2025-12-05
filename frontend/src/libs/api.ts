@@ -172,6 +172,13 @@ export const api = {
         auth: true,
         body: JSON.stringify({ usuarioEmail, peso }),
       }),
+
+    percentualGordura: (usuarioEmail: string, percentual_gordura: number) =>
+      request<{ mensagem: string }>("/editar/percentual_gordura", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, percentual_gordura }),
+      }),
   },
 
   inserirExercicio: {
