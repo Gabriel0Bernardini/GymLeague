@@ -13,6 +13,7 @@ from routes.inserirExercicio import inserirExercicios_bp
 from routes.explorarRotinas import explorarRotinas_bp
 from routes.ranking import ranking_bp
 from routes.evolucao_routes import evolucao_bp
+from routes.editar import editar_bp
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ app.register_blueprint(inserirExercicios_bp)
 app.register_blueprint(explorarRotinas_bp)
 app.register_blueprint(ranking_bp)
 app.register_blueprint(evolucao_bp)
+app.register_blueprint(editar_bp)
 
 @app.get("/health")
 def health():

@@ -1,19 +1,28 @@
 import { useState } from "react";
+import { api } from "../../libs/api";
+import { useEffect } from "react";
 
-export type CardPesoAtualProps = {
-  pesoAtual?: number;
-};
-
-export default function PesoAtualCard({
-  pesoAtual = 82, // placeholder default
-}: CardPesoAtualProps) {
+export default function PesoAtualCard(){
   const [editMode, setEditMode] = useState(false);
-  const [peso, setPeso] = useState(pesoAtual);
+  const [peso, setPeso] = useState<number | null>(null);
 
-  function handleSave() {
+  useEffect(() => {
+    async function carregarPeso() {
+      const me = await api.auth.me();
+      const dados = await api.users.get(me.email);
+      setPeso(dados.peso);
+    }
+    carregarPeso();
+  }, []);
+
+
+  async function handleSave() {
+    const me = await api.auth.me();
+    await api.editar.peso(me.email, peso!);
     setEditMode(false);
-    // TODO: Integrar com backend para salvar peso
   }
+
+  if (peso === null) return <p>Carregando...</p>;
 
   return (
     <div className="p-4">
@@ -58,7 +67,6 @@ export default function PesoAtualCard({
                 className="ml-1 px-2 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded text-sm"
                 onClick={() => {
                   setEditMode(false);
-                  setPeso(pesoAtual);
                 }}
               >
                 Cancelar

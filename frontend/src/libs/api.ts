@@ -74,6 +74,18 @@ export const api = {
       }),
   },
 
+  users: {
+    get: (email: string) =>
+      request<{
+        email: string;
+        pNome: string;
+        dataNascimento: string | null;
+        peso: number | null;
+        altura: number | null;
+        percentual_gordura: number | null;
+      }>(`/users/${email}`, { auth: true }),
+  },
+
   explorarRotinas: {
         listar: () => request<{ rotinas: Rotina[] }>("/explorar-rotinas/", { auth: true }),
 
@@ -151,8 +163,17 @@ export const api = {
           auth: true,
           body: JSON.stringify({ usuarioEmail })
       }),
-},
+  },
   
+  editar: {
+    peso: (usuarioEmail: string, peso: number) =>
+      request<{ mensagem: string }>("/editar/peso", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, peso }),
+      }),
+  },
+
   inserirExercicio: {
     carregarDados: () =>
       request<{
