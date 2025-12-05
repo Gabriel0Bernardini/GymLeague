@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import type { User } from "./Home";
 
 import TopBar from "../components/ui/TopBar";
+import RankingCard from "../components/ranking/RankingCard";
+import PesoAtualCardEditavel from "../components/ranking/PesoAtualCardEditavel";
+import PercentualGCardEditavel from "../components/ranking/PercentualGCardEditavel";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Footer from "../components/ui/Footer";
@@ -48,29 +51,14 @@ export default function Ranking() {
     <div className="w-full min-h-screen bg-gray-100 p-6 text-gray-900">
       <div className="pt-10">
         <TopBar user={user} onLogout={handleLogout}/>
-        <div className="p-4">
-            <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-6">
-                <div className="text-gray-700">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
-                </svg>
-                </div>
-    
-                <div>
-                <p className="text-lg font-semibold">
-                    Bem-vindo, {user?.pNome ?? "carregando..."}!
-                </p>
-                <p className="font-semibold">
-                    Ranking Atual:
-                    <span className="font-bold text-xl"> Prata II</span>
-                </p>
-                </div>
-            </div>
+        <RankingCard user={user}></RankingCard>
+        <div className="flex gap-x-4">
+          <div className="flex-1">
+            <PesoAtualCardEditavel />
+          </div>
+          <div className="flex-1">
+            <PercentualGCardEditavel />
+          </div>
         </div>
       </div>
 
