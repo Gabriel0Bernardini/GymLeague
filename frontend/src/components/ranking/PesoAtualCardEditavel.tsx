@@ -19,6 +19,7 @@ export default function PesoAtualCard(){
   async function handleSave() {
     const me = await api.auth.me();
     await api.editar.peso(me.email, peso!);
+    window.dispatchEvent(new Event("userMetricsUpdated"));
     setEditMode(false);
   }
 

@@ -10,7 +10,7 @@ export default function percentualAtualCard() {
       const me = await api.auth.me();
       const dados = await api.users.get(me.email);
       const valor = dados.percentual_gordura ?? 0;   
-      setPercentual(valor * 100);
+      setPercentual(Math.round(valor * 100));
     }
     carregarPercentual();
   }, []);
@@ -18,8 +18,10 @@ export default function percentualAtualCard() {
   async function handleSave() {
     if (percentual === null) return;
     const me = await api.auth.me();
-    const valorDecimal = percentual / 100; 
+    const percentualSanitized = Math.round(percentual * 100) / 100;
+    const valorDecimal = percentualSanitized / 100; 
     await api.editar.percentualGordura(me.email, valorDecimal);
+    window.dispatchEvent(new Event("userMetricsUpdated"));
     setEditMode(false);
   }
   if (percentual === null) return <p>Carregando...</p>;
@@ -48,7 +50,7 @@ export default function percentualAtualCard() {
               <input
                 type="number"
                 className="border rounded px-2 py-1 w-20 text-xl font-bold"
-                value={percentual}
+                value={percentual ?? 0}
                 onChange={(e) => setPercentual(Number(e.target.value))}
                 min={0}
               />
