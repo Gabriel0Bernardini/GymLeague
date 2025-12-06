@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../../libs/api";
 
 type Meta = {
+  titulo: string;
   tipo: "Peso" | "Percentual de gordura";
   objetivo: number;
   atual: number;
@@ -131,6 +132,21 @@ export default function MetasCard() {
     } catch(err) {
       console.error("Erro ao editar meta:", err);
       alert("Erro ao editar meta");
+    }
+  }
+
+  async function handleDeleteMeta() {
+    if (editIdx === null) return;
+    const meta = metas[editIdx];
+    if(!meta) return;
+    try{
+      const me = await api.auth.me();
+      await api.metas.excluir({usuarioEmail: me.email, titulo: meta.titulo});
+      await carregar();
+      fecharModal();
+    } catch(err) {
+      console.error("Erro ao excluir meta:", err);
+      alert("Erro ao excluir meta");
     }
   }
 
@@ -279,7 +295,7 @@ export default function MetasCard() {
                 <button
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-2"
                   onClick={() => {
-                    setMetas(metas.filter((_, idx) => idx !== editIdx));
+                    handleDeleteMeta();
                     fecharModal();
                   }}
                 >

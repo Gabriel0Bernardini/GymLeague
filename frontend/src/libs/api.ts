@@ -160,6 +160,13 @@ export const api = {
         method: "PUT",
         auth: true,
         body: JSON.stringify(payload),
+      }),
+      
+    excluir: (payload: { usuarioEmail: string; titulo: string }) =>
+      request<{ mensagem: string }>("/metas/deletar", {
+        method: "DELETE",
+        auth: true,
+        body: JSON.stringify(payload),
       }),  
   },
 

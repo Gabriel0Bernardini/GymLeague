@@ -124,3 +124,39 @@ def editar_meta():
     finally:
         cursor.close()
         conn.close()
+
+@metas_bp.delete("/deletar")
+def deletar_meta():
+    conn = get_conn()
+    cursor = conn.cursor(dictionary=True)
+    dados = request.get_json()
+    if dados is None:
+        return jsonify({"erro": "Body JSON ausente"}), 400
+    usuarioEmail = dados.get("usuarioEmail")
+    titulo = dados.get("titulo")
+    if None in (usuarioEmail, titulo):
+        return jsonify({"erro": "Parâmetros ausentes"}), 400
+    
+    try:
+        SQL = """
+            SELECT * FROM Metas 
+            Where fk_emailUsuario = %s AND titulo = %s"""
+        cursor.execute(SQL, (usuarioEmail, titulo))
+        meta_existente = cursor.fetchone()
+        if not meta_existente:
+            return jsonify({"erro": "Meta não encontrada"}), 404
+        
+        SQL = """
+        DELETE FROM Metas 
+        WHERE fk_emailUsuario = %s AND titulo = %s
+        """
+        cursor.execute(SQL, (usuarioEmail, titulo))
+        conn.commit()
+        return jsonify({"mensagem": "Meta deletada com sucesso"}), 200
+    except Exception as e:
+        print("ERRO NO /metas/deletar DELETE:", str(e))
+        import traceback; traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
