@@ -29,6 +29,7 @@ export default function Treinar() {
   const [serieEmEdicao, setSerieEmEdicao] = useState<any | null>(null);
   const [modalEditar, setModalEditar] = useState(false);
   const [notasTreino, setNotasTreino] = useState("");
+  const [avisoVisivel, setAvisoVisivel] = useState(true);
 
   useEffect(() => {
     api.auth
@@ -177,8 +178,28 @@ export default function Treinar() {
       <div className="flex flex-col min-h-screen">
         <TopBar user={user} onLogout={() => { clearToken(); window.location.href = "/"; }} />
 
-        <div className="flex-grow overflow-y-auto p-4 pt-20 pb-32">
+        <div className="flex-grow overflow-y-auto p-4 pt-20">
           <h2 className="text-2xl font-semibold mb-4">Treinar</h2>
+
+          {/* Aviso: instância do dia atual */}
+          {avisoVisivel && (
+            <div className="mb-4 p-3 rounded bg-yellow-50 border border-yellow-200 flex justify-between items-start">
+              <div className="text-sm text-yellow-800">
+                <strong>Aviso:</strong> este é o treino da data atual. As séries registradas aqui
+                ficam associadas ao dia de hoje e não alteram treinos antigos ou o template.
+              </div>
+              <div>
+                <button
+                  onClick={() => setAvisoVisivel(false)}
+                  className="ml-4 text-sm px-2 py-1 bg-yellow-200 rounded"
+                  aria-label="Fechar aviso"
+                >
+                  Entendi
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-6">
               <div className="col-span-1 bg-white rounded shadow p-4">
                 <h3 className="font-semibold mb-2">Rotinas</h3>
