@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "../../libs/api";
 
 type Meta = {
@@ -14,41 +14,49 @@ export default function MetasCard() {
   const [tipoMeta, setTipoMeta] = useState<Meta["tipo"]>("Peso");
   const [objetivo, setObjetivo] = useState<number>(0);
   const [atual, setAtual] = useState<number>(0);
-
+  const [descricao, setDescricao] = useState<string>("");
   // Para edição
   const [editIdx, setEditIdx] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function carregar() {
-      const me = await api.auth.me();
-      const dados = await api.metas.listar(me.email);
-      const user = await api.users.get(me.email);
+  const carregar = useCallback(async () => {
+    const me = await api.auth.me();
+    const dados = await api.metas.listar(me.email);
+    const user = await api.users.get(me.email);
+    const adaptadas = dados.map(m => {
+      let atual = 0;
+      let tipo: "Peso" | "Percentual de gordura";
 
-      const adaptadas = dados.map(m => {
-        let atual = 0;
-        let tipo: "Peso" | "Percentual de gordura";
+      if (m.tipo === "P") {
+        tipo = "Peso";
+        atual = user.peso || 0;
+      } else {
+        tipo = "Percentual de gordura";
+        atual = (user.percentual_gordura || 0) * 100;
+      }
 
-        if (m.tipo === "P") {
-          tipo = "Peso";
-          atual = user.peso || 0;
-        } else {
-          tipo = "Percentual de gordura";
-          atual = (user.percentual_gordura || 0) * 100;
-        }
+      return {
+        titulo: m.titulo,
+        tipo,
+        objetivo: m.objetivo,
+        atual, 
+        descricao: m.descricao || undefined,
+      } as Meta;
+    });
 
-        return {
-          tipo,
-          objetivo: m.objetivo,
-          atual,
-          descricao: m.descricao || undefined
-        };
-      });
-
-      setMetas(adaptadas);
-    }
-
-    carregar();
+    setMetas(adaptadas);
   }, []);
+
+  useEffect(() => {
+    carregar();
+    
+    const handler = () => {
+      carregar();
+    };
+    window.addEventListener("userMetricsUpdated", handler);
+    return () => {
+      window.removeEventListener("userMetricsUpdated", handler);
+    };
+  }, [carregar]);
 
   async function handleAddMeta() {
   try {
@@ -104,11 +112,26 @@ export default function MetasCard() {
   }
 }
 
-  function handleEditMeta() {
+  async function handleEditMeta() {
     if (editIdx === null) return;
-    let novaMeta: Meta = { tipo: tipoMeta, objetivo, atual };
-    setMetas(metas.map((m, idx) => (idx === editIdx ? novaMeta : m)));
-    fecharModal();
+    const meta = metas[editIdx];
+    if(!meta) return;
+    try{
+      const me = await api.auth.me();
+      const payload = {
+        usuarioEmail: me.email,
+        titulo: meta.tipo,
+        descricao: descricao || "",
+        valorMeta: objetivo,
+        tipoMeta: meta.tipo === "Peso" ? "P" : "G",
+      };
+      await api.metas.editar(payload);
+      await carregar();
+      fecharModal();
+    } catch(err) {
+      console.error("Erro ao editar meta:", err);
+      alert("Erro ao editar meta");
+    }
   }
 
   function abrirModalEdicao(idx: number) {

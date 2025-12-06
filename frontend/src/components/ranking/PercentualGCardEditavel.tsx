@@ -20,6 +20,7 @@ export default function percentualAtualCard() {
     const me = await api.auth.me();
     const valorDecimal = percentual / 100; 
     await api.editar.percentualGordura(me.email, valorDecimal);
+    window.dispatchEvent(new Event("userMetricsUpdated"));
     setEditMode(false);
   }
   if (percentual === null) return <p>Carregando...</p>;

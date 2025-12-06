@@ -148,6 +148,19 @@ export const api = {
         auth: true,
         body: JSON.stringify(payload),
       }),
+
+    editar: (payload: {
+      usuarioEmail: string;
+      titulo: string;
+      valorMeta: number;
+      descricao?: string | null;
+      tipoMeta?: string | null;
+    }) =>
+      request<{ mensagem: string }>("/metas/editar", {
+        method: "PUT",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),  
   },
 
   exercicios: {
