@@ -23,26 +23,23 @@ export default function MetasCard() {
     const me = await api.auth.me();
     const dados = await api.metas.listar(me.email);
     const user = await api.users.get(me.email);
-    const adaptadas = dados.map(m => {
-      let atual = 0;
-      let tipo: "Peso" | "Percentual de gordura";
+    const adaptadas = dados.map((m: any) => {
+    const userPeso = Number(user.peso ?? 0);
+    const userPercentual = Number(user.percentual_gordura ?? 0) * 100;
 
-      if (m.tipo === "P") {
-        tipo = "Peso";
-        atual = user.peso || 0;
-      } else {
-        tipo = "Percentual de gordura";
-        atual = (user.percentual_gordura || 0) * 100;
-      }
+    const tipo: "Peso" | "Percentual de gordura" = m.tipo === "P" ? "Peso" : "Percentual de gordura";
+    const atualRaw = tipo === "Peso" ? userPeso : userPercentual;
 
-      return {
-        titulo: m.titulo,
-        tipo,
-        objetivo: m.objetivo,
-        atual, 
-        descricao: m.descricao || undefined,
-      } as Meta;
-    });
+    const atual = Math.round(Number(atualRaw) || 0);
+
+    return {
+      titulo: m.titulo,
+      tipo,
+      objetivo: Math.round(Number(m.objetivo) || 0),
+      atual,
+      descricao: m.descricao || undefined,
+    } as Meta;
+  });
 
     setMetas(adaptadas);
   }, []);
@@ -88,18 +85,18 @@ export default function MetasCard() {
     const user = await api.users.get(me.email);
 
     const adaptadas = novas.map((m: any) => {
-      let atual = 0;
-      let tipo: "Peso" | "Percentual de gordura";
-      if (m.tipo === "P") {
-        tipo = "Peso";
-        atual = user.peso || 0;
-      } else {
-        tipo = "Percentual de gordura";
-        atual = (user.percentual_gordura || 0) * 100;
-      }
+      const userPeso = Number(user.peso ?? 0);
+      const userPercentual = Number(user.percentual_gordura ?? 0) * 100;
+
+      const tipo: "Peso" | "Percentual de gordura" = m.tipo === "P" ? "Peso" : "Percentual de gordura";
+      const atualRaw = tipo === "Peso" ? userPeso : userPercentual;
+
+      const atual = Math.round(Number(atualRaw) || 0);
+
       return {
+        titulo: m.titulo,
         tipo,
-        objetivo: m.objetivo,
+        objetivo: Math.round(Number(m.objetivo) || 0),
         atual,
         descricao: m.descricao || undefined,
       } as Meta;
@@ -156,6 +153,7 @@ export default function MetasCard() {
     setTipoMeta(meta.tipo);
     setObjetivo(meta.objetivo);
     setAtual(meta.atual);
+    setDescricao(meta.descricao || "");
     setShowModal(true);
   }
 
@@ -164,6 +162,7 @@ export default function MetasCard() {
     setTipoMeta("Peso");
     setObjetivo(0);
     setAtual(0);
+    setDescricao("");
     setEditIdx(null);
   }
 
@@ -185,12 +184,17 @@ export default function MetasCard() {
         </div>
         <ul className="space-y-3">
           {metas.map((meta, idx) => {
-            const menor = meta.atual < meta.objetivo;
-            let progresso = Math.min((meta.atual / meta.objetivo) * 100, 100);
-            if (menor) {
-              progresso;
+            const objetivoNum = Number(meta.objetivo) || 0;
+            const atualNum = Number(meta.atual) || 0;
+            let progresso = 0;
+
+            if (objetivoNum > 0 && atualNum > 0) {
+              const menor = atualNum < objetivoNum;
+              progresso = menor
+                ? Math.min((atualNum / objetivoNum) * 100, 100)
+                : Math.min((objetivoNum / atualNum) * 100, 100);
             } else {
-              progresso = Math.min((meta.objetivo / meta.atual) * 100, 100);
+              progresso = 0;
             }
             return (
               <li key={idx} className="p-3 bg-gray-50 border rounded-lg">
@@ -199,12 +203,8 @@ export default function MetasCard() {
                     {meta.tipo}
                   </span>
                   <span className="text-sm text-gray-600">
-                    {meta.atual} / {meta.objetivo}{" "}
-                    {meta.tipo === "Peso"
-                      ? "kg"
-                      : meta.tipo === "Percentual de gordura"
-                      ? "%"
-                      : "kg"}
+                    {Math.round(meta.atual)} / {Math.round(meta.objetivo)}{" "}
+                    {meta.tipo === "Peso" ? "kg" : "%"}
                   </span>
                   <button
                     className="ml-2 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"

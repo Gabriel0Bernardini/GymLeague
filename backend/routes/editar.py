@@ -6,7 +6,7 @@ editar_bp = Blueprint("editar", __name__, url_prefix="/editar")
 @editar_bp.post("/peso")
 def editar_peso():
     conn = get_conn()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
     dados = request.get_json()
 
     if dados is None:
@@ -50,7 +50,7 @@ def editar_peso():
 @editar_bp.post("/percentual_gordura")
 def editar_percentual_gordura():
     conn = get_conn()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(dictionary=True, buffered=True)
     dados = request.get_json()
     if dados is None:
         return jsonify({"erro": "Body JSON ausente"}), 400
@@ -59,6 +59,12 @@ def editar_percentual_gordura():
         return jsonify({"erro": "usuarioEmail ausente"}), 400
     
     novoPercentual = dados.get("percentual_gordura")
+    try:
+        novoPercentual = float(novoPercentual)
+    except (TypeError, ValueError):
+        return jsonify({"erro": "percentual_gordura deve ser um número"}), 400
+    novoPercentual = round(novoPercentual, 4)
+    
     try:
         SQL = """
         UPDATE Usuario SET percentual_gordura = %s
