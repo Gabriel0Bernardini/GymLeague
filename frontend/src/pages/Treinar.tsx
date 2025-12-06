@@ -229,25 +229,30 @@ export default function Treinar() {
                       <div className="font-medium">Treino: {treinoAtivo.nome_treino ?? treinoAtivo.nome}</div>
                     </div>
 
-                    {/* Indicador de Progresso */}
+                    {/* Indicador de Progresso (apenas conta séries planejadas, extras não inflacionam) */}
                     <div className="mb-4 p-3 bg-sky-50 rounded border border-sky-200">
                       <div className="text-sm font-semibold mb-2">Progresso</div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm">
-                          {series.length} / {exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0)} séries
-                        </span>
-                        <span className="text-xs bg-sky-500 text-white px-2 py-1 rounded">
-                          {Math.round((series.length / Math.max(exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0), 1)) * 100)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded h-2">
-                        <div
-                          className="bg-sky-500 h-2 rounded transition-all"
-                          style={{
-                            width: `${Math.round((series.length / Math.max(exercicios.reduce((acc, ex) => acc + (ex.series_plano || 0), 0), 1)) * 100)}%`,
-                          }}
-                        ></div>
-                      </div>
+                      {
+                        (() => {
+                          const plannedTotal = exercicios.reduce((acc: number, ex: any) => acc + (ex.series_plano || 0), 0);
+                          const donePlanned = exercicios.reduce((acc: number, ex: any) => {
+                            const doneForEx = series.filter((s) => s.fk_nomeExercicio === ex.nome_exercicio).length;
+                            return acc + Math.min(doneForEx, ex.series_plano || 0);
+                          }, 0);
+                          const pct = plannedTotal > 0 ? Math.round((donePlanned / plannedTotal) * 100) : 0;
+                          return (
+                            <>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm">{donePlanned} / {plannedTotal} séries</span>
+                                <span className="text-xs bg-sky-500 text-white px-2 py-1 rounded">{pct}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded h-2">
+                                <div className="bg-sky-500 h-2 rounded transition-all" style={{ width: `${pct}%` }}></div>
+                              </div>
+                            </>
+                          );
+                        })()
+                      }
                     </div>
 
                     <div className="mb-3">
@@ -313,15 +318,53 @@ export default function Treinar() {
                     <div className="mb-3">
                       <div className="text-sm font-semibold">Adicionar Série</div>
                       <div className="grid grid-cols-2 gap-2 mt-2">
-                        <input className="p-2 border rounded" placeholder="Repetições" type="number" value={formSerie.repeticoes} onChange={(e) => setFormSerie({ ...formSerie, repeticoes: Number(e.target.value) })} />
-                        <input className="p-2 border rounded" placeholder="Carga (kg)" type="number" step="0.5" value={formSerie.carga} onChange={(e) => setFormSerie({ ...formSerie, carga: Number(e.target.value) })} />
-                        <select className="col-span-2 p-2 border rounded" value={formSerie.nome_exercicio} onChange={(e) => setFormSerie({ ...formSerie, nome_exercicio: e.target.value })}>
-                          <option value="">-- Escolher exercício --</option>
-                          {exercicios.map((ex, i) => (
-                            <option key={i} value={ex.nome_exercicio ?? ex.nome}>{ex.nome_exercicio ?? ex.nome}</option>
-                          ))}
-                        </select>
-                        <input className="col-span-2 p-2 border rounded" placeholder="Detalhe (opcional)" value={formSerie.detalhe} onChange={(e) => setFormSerie({ ...formSerie, detalhe: e.target.value })} />
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Repetições</label>
+                          <div className="flex items-center">
+                            <input
+                              className="flex-1 p-2 border rounded"
+                              placeholder="ex: 10"
+                              type="number"
+                              min={0}
+                              value={formSerie.repeticoes}
+                              onChange={(e) => setFormSerie({ ...formSerie, repeticoes: Number(e.target.value) })}
+                              aria-label="Repetições"
+                            />
+                            <span className="ml-2 text-xs text-gray-600">reps</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Carga</label>
+                          <div className="flex items-center">
+                            <input
+                              className="flex-1 p-2 border rounded"
+                              placeholder="ex: 50.0"
+                              type="number"
+                              step="0.5"
+                              min={0}
+                              value={formSerie.carga}
+                              onChange={(e) => setFormSerie({ ...formSerie, carga: Number(e.target.value) })}
+                              aria-label="Carga (kg)"
+                            />
+                            <span className="ml-2 text-xs text-gray-600">kg</span>
+                          </div>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium mb-1">Exercício</label>
+                          <select className="w-full p-2 border rounded" value={formSerie.nome_exercicio} onChange={(e) => setFormSerie({ ...formSerie, nome_exercicio: e.target.value })} aria-label="Exercício">
+                            <option value="">-- Escolher exercício --</option>
+                            {exercicios.map((ex, i) => (
+                              <option key={i} value={ex.nome_exercicio ?? ex.nome}>{ex.nome_exercicio ?? ex.nome}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium mb-1">Detalhe (opcional)</label>
+                          <input className="w-full p-2 border rounded" placeholder="Ex: forma, respiração, observações" value={formSerie.detalhe} onChange={(e) => setFormSerie({ ...formSerie, detalhe: e.target.value })} aria-label="Detalhe da série" />
+                        </div>
                       </div>
                       <div className="mt-2">
                         <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleAdicionarSerie}>Adicionar Série</button>
@@ -382,21 +425,34 @@ export default function Treinar() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Repetições</label>
-                  <input
-                    className="w-full p-2 border rounded"
-                    type="number"
-                    value={serieEmEdicao.repeticoes}
-                    onChange={(e) => setSerieEmEdicao({ ...serieEmEdicao, repeticoes: Number(e.target.value) })}
-                  />
+                  <div className="flex items-center">
+                    <input
+                      className="w-full p-2 border rounded"
+                      type="number"
+                      min={0}
+                      placeholder="ex: 10"
+                      value={serieEmEdicao.repeticoes}
+                      onChange={(e) => setSerieEmEdicao({ ...serieEmEdicao, repeticoes: Number(e.target.value) })}
+                      aria-label="Repetições edição"
+                    />
+                    <span className="ml-2 text-xs text-gray-600">reps</span>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Carga (kg)</label>
-                  <input
-                    className="w-full p-2 border rounded"
-                    type="number"
-                    value={serieEmEdicao.carga}
-                    onChange={(e) => setSerieEmEdicao({ ...serieEmEdicao, carga: Number(e.target.value) })}
-                  />
+                  <div className="flex items-center">
+                    <input
+                      className="w-full p-2 border rounded"
+                      type="number"
+                      step="0.5"
+                      min={0}
+                      placeholder="ex: 50.0"
+                      value={serieEmEdicao.carga}
+                      onChange={(e) => setSerieEmEdicao({ ...serieEmEdicao, carga: Number(e.target.value) })}
+                      aria-label="Carga edição"
+                    />
+                    <span className="ml-2 text-xs text-gray-600">kg</span>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Detalhe</label>
