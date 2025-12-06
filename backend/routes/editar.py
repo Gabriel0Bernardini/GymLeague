@@ -31,10 +31,20 @@ def editar_peso():
         resultado = cursor.fetchone()
         percentual = resultado["percentual_gordura"]
 
-        SQL = """
-        INSERT INTO HistoricoUsuario(peso,dataPesagem, percentual_gordura, fkEmailUsuario)
-        VALUES(%s, CURRENT_DATE(), %s, %s)"""
-        cursor.execute(SQL, (novoPeso, percentual, usuarioEmail))
+        SQL = """ SELECT dataPesagem FROM HistoricoUsuario
+                  WHERE fkEmailUsuario = %s AND dataPesagem = CURRENT_DATE()"""
+        cursor.execute(SQL, (usuarioEmail,))
+        resultado = cursor.fetchone()
+        if resultado is not None:
+            SQL = """ UPDATE HistoricoUsuario
+                      SET peso = %s
+                      WHERE fkEmailUsuario = %s AND dataPesagem = CURRENT_DATE()"""
+            cursor.execute(SQL, (novoPeso, usuarioEmail))
+        else:
+            SQL = """
+            INSERT INTO HistoricoUsuario(peso,dataPesagem, percentual_gordura, fkEmailUsuario)
+            VALUES(%s, CURRENT_DATE(), %s, %s)"""
+            cursor.execute(SQL, (novoPeso, percentual, usuarioEmail))
         conn.commit()
         return jsonify({"mensagem": "Peso atualizado com sucesso"}), 200
     except Exception as e:
@@ -62,7 +72,7 @@ def editar_percentual_gordura():
     try:
         novoPercentual = float(novoPercentual)
     except (TypeError, ValueError):
-        return jsonify({"erro": "percentual_gordura deve ser um número"}), 400
+        return jsonify({"erro": "percentual_gordura deve ser um nÃºmero"}), 400
     novoPercentual = round(novoPercentual, 4)
     
     try:

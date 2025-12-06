@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { api } from "../../libs/api";
-import { useEffect } from "react";
 
 export default function PesoAtualCard(){
   const [editMode, setEditMode] = useState(false);
   const [peso, setPeso] = useState<number | null>(null);
+  const originalPesoRef = useRef<number | null>(null);
 
   useEffect(() => {
     async function carregarPeso() {
       const me = await api.auth.me();
       const dados = await api.users.get(me.email);
       setPeso(dados.peso);
+      originalPesoRef.current = dados.peso;
     }
     carregarPeso();
   }, []);
@@ -19,7 +20,13 @@ export default function PesoAtualCard(){
   async function handleSave() {
     const me = await api.auth.me();
     await api.editar.peso(me.email, peso!);
+    originalPesoRef.current = peso!;
     window.dispatchEvent(new Event("userMetricsUpdated"));
+    setEditMode(false);
+  }
+
+  function handleCancel() {
+    setPeso(originalPesoRef.current);
     setEditMode(false);
   }
 
@@ -53,7 +60,7 @@ export default function PesoAtualCard(){
               <input
                 type="number"
                 className="border rounded px-2 py-1 w-20 text-xl font-bold"
-                value={peso}
+                value={peso ?? 0}
                 onChange={(e) => setPeso(Number(e.target.value))}
                 min={0}
               />
@@ -66,9 +73,7 @@ export default function PesoAtualCard(){
               </button>
               <button
                 className="ml-1 px-2 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded text-sm"
-                onClick={() => {
-                  setEditMode(false);
-                }}
+                onClick={handleCancel}
               >
                 Cancelar
               </button>
@@ -80,7 +85,10 @@ export default function PesoAtualCard(){
         <div className="mt-4 w-full flex justify-end">
           <button
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
-            onClick={() => setEditMode(true)}
+            onClick={() =>{ 
+              setPeso(originalPesoRef.current);
+              setEditMode(true)
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

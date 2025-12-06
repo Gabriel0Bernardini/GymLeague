@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../../libs/api";
 
 export default function percentualAtualCard() {
   const [editMode, setEditMode] = useState(false);
   const [percentual, setPercentual] = useState<number | null>(null);
+  const originalPercentualRef = useRef<number | null>(null);
 
   useEffect(() => {
     async function carregarPercentual() {
       const me = await api.auth.me();
       const dados = await api.users.get(me.email);
-      const valor = dados.percentual_gordura ?? 0;   
+      const valor = dados.percentual_gordura ?? 0;
+      const percent = Math.round(valor * 100);   
       setPercentual(Math.round(valor * 100));
+      originalPercentualRef.current = percent;
     }
     carregarPercentual();
   }, []);
@@ -21,9 +24,16 @@ export default function percentualAtualCard() {
     const percentualSanitized = Math.round(percentual * 100) / 100;
     const valorDecimal = percentualSanitized / 100; 
     await api.editar.percentualGordura(me.email, valorDecimal);
+    originalPercentualRef.current = Math.round(percentualSanitized);
     window.dispatchEvent(new Event("userMetricsUpdated"));
     setEditMode(false);
   }
+
+  function handleCancel() {
+    setPercentual(originalPercentualRef.current);
+    setEditMode(false);
+  }
+
   if (percentual === null) return <p>Carregando...</p>;
 
   return (
@@ -63,9 +73,7 @@ export default function percentualAtualCard() {
               </button>
               <button
                 className="ml-1 px-2 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded text-sm"
-                onClick={() => {
-                  setEditMode(false);
-                }}
+                onClick={handleCancel}
               >
                 Cancelar
               </button>
@@ -77,7 +85,10 @@ export default function percentualAtualCard() {
         <div className="mt-4 w-full flex justify-end">
           <button
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
-            onClick={() => setEditMode(true)}
+            onClick={() => { 
+              setPercentual(originalPercentualRef.current);
+              setEditMode(true)
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
