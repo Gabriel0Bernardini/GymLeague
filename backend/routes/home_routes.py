@@ -51,8 +51,33 @@ def get_peso_percentual():
 @home_bp.get("/ranking")
 @require_auth
 def get_ranking():
-    #FAZER DEPOIS POIS NAO ESTAMOS CADASTRANDO RANKING GERAL AINDA
-    return jsonify({"message": "Rota de ranking em construção."}), 200
+    conn = None
+    cursor = None
+    try:
+        email = g.user['email']
+        conn = get_conn()
+        cursor = conn.cursor(dictionary=True)
+
+        SQL = """
+            SELECT ranking_geral
+            FROM Usuario
+            WHERE email = %s
+        """
+        cursor.execute(SQL, (email,))
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"message": "Ranking não encontrado."}), 404
+
+        return jsonify({"rankingGeral": row.get('ranking_geral')}), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Erro ao buscar ranking."}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @home_bp.get("/metas")
