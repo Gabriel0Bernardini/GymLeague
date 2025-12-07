@@ -114,3 +114,33 @@ def editar_percentual_gordura():
     finally:
         cursor.close()
         conn.close()
+
+@editar_bp.post("/altura")
+def editar_altura():
+    conn = get_conn()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    dados = request.get_json()
+    if dados is None:
+        return jsonify({"erro": "Body JSON ausente"}), 400
+    usuarioEmail = dados.get("usuarioEmail")
+    if usuarioEmail is None:
+        return jsonify({"erro": "usuarioEmail ausente"}), 400
+    
+    novaAltura = dados.get("altura")
+
+    try:
+        SQL = """
+        UPDATE Usuario SET altura = %s
+        WHERE email = %s"""    
+
+        cursor.execute(SQL, (novaAltura, usuarioEmail))
+        conn.commit()
+        return jsonify({"mensagem": "Altura atualizada com sucesso"}), 200
+    except Exception as e:
+        print("ERRO NO /editar/altura:", str(e))
+        import traceback
+        traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
