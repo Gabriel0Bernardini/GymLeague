@@ -306,4 +306,38 @@ export const api = {
         auth: true,
       }),
   },  
+  home: {
+    pesoPercentual: () =>
+      request<{ peso: number | null; percentual_gordura: number | null }>(
+        "/peso_percentual",
+        { auth: true }
+      ),
+
+    ranking: () => request<{ message?: string }>("/ranking", { auth: true }),
+
+    metas: () =>
+      request<{
+        meta?: {
+          titulo?: string;
+          objetivo?: number;
+          tipo?: string;
+          valorInicial?: number | null;
+        };
+        usuario?: {
+          peso?: number;
+          percentual_gordura?: number;
+        };
+        percentComplete?: number;
+        valorAtual?: number;
+        message?: string;
+      }>("/metas", { auth: true }),
+    ultimoTreino: () =>
+      request<{
+        dataDoTreino?: string;
+        nomeDoTreino?: string;
+        nomeDaRotina?: string | null;
+        proximosTreinos?: string[];
+        message?: string;
+      }>("/ultimo_treino", { auth: true }),
+  },
 };

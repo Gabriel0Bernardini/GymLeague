@@ -56,11 +56,55 @@ def criar_meta():
         return jsonify({"erro": "tipoMeta ausente"}), 400
 
     try:
+        if tipoMeta == "G":
+            try:
+                SQL = """
+                SELECT percentual_gordura
+                FROM Usuario
+                WHERE email = %s
+                """
+                cursor.execute(SQL, (usuarioEmail,))
+                row = cursor.fetchone()
+                if not row or row.get("percentual_gordura") is None:
+                    return jsonify({"erro": "Percentual de gordura do usuário não cadastrado."}), 400
+                pg = row.get("percentual_gordura")
+                try:
+                    pg_num = float(pg)
+                    if pg_num <= 1:
+                        pg_num = pg_num * 100
+                except Exception:
+                    return jsonify({"erro": "Valor de percentual de gordura inválido."}), 400
+                # armazenar como inteiro (coluna é INT)
+                valorInicial = int(round(pg_num))
+            except Exception as e:
+                print("ERRO AO BUSCAR PERCENTUAL DE GORDURA DO USUARIO:", str(e))
+                return jsonify({"erro": "Erro ao buscar percentual de gordura do usuário"}), 500
+        elif tipoMeta == "P":
+            try:
+                SQL = """
+                SELECT peso
+                FROM Usuario
+                WHERE email = %s
+                """
+                cursor.execute(SQL, (usuarioEmail,))
+                row = cursor.fetchone()
+                if not row or row.get("peso") is None:
+                    return jsonify({"erro": "Peso do usuário não cadastrado."}), 400
+                try:
+                    peso_num = float(row.get("peso"))
+                except Exception:
+                    return jsonify({"erro": "Valor de peso inválido."}), 400
+                # armazenar como inteiro
+                valorInicial = int(round(peso_num))
+            except Exception as e:
+                print("ERRO AO BUSCAR PESO DO USUARIO:", str(e))
+                return jsonify({"erro": "Erro ao buscar peso do usuário"}), 500
+        
         SQL = """
-        INSERT INTO Metas (titulo, descricao, objetivo, tipo, fk_emailUsuario)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO Metas (titulo, descricao, objetivo, tipo, fk_emailUsuario, valor_inicial)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
-        params = (titulo, descricao, valorMeta, tipoMeta, usuarioEmail)
+        params = (titulo, descricao, valorMeta, tipoMeta, usuarioEmail, valorInicial)
         print("DEBUG /metas/criar SQL params:", params)  
 
         cursor.execute(SQL, params)
@@ -112,9 +156,9 @@ def editar_meta():
         SQL = """
         UPDATE Metas
         Set objetivo = %s, tipo = %s, descricao = %s
-        WHERE fk_emailUsuario = %s AND titulo = %s
+        WHERE fk_emailUsuario = %s AND titulo = %s AND valor_inicial = %s
         """
-        cursor.execute(SQL, (novo_valor, novoTipo, novaDescricao, usuarioEmail, titulo))
+        cursor.execute(SQL, (novo_valor, novoTipo, novaDescricao, usuarioEmail, titulo, meta_existente.get("valor_inicial")))
         conn.commit()
         return jsonify({"mensagem": "Meta atualizada com sucesso"}), 200
     except Exception as e:
