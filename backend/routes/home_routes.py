@@ -215,3 +215,81 @@ def get_metas():
             cursor.close()
         if conn:
             conn.close()
+            
+            
+@home_bp.get("/ultimo_treino")
+@require_auth
+def get_ultimo_treino():
+    """
+    Retorna informações do último treino do usuário:
+      - dataDoTreino (string)
+      - nomeDoTreino (string)
+      - nomeDaRotina (string|null)
+      - proximosTreinos (array de strings) -> outros treinos da mesma rotina
+    """
+    conn = None
+    cursor = None
+    try:
+        email = g.user['email']
+        conn = get_conn()
+        cursor = conn.cursor(dictionary=True)
+
+        # pega o treino mais recente (exclui placeholders '9999-12-31')
+        SQL = """
+            SELECT dataDoTreino, fkNomeTreino
+            FROM UsuarioTreino
+            WHERE fEmail_UsuarioTreino = %s
+              AND dataDoTreino <> '9999-12-31'
+            ORDER BY dataDoTreino DESC
+            LIMIT 1
+        """
+        cursor.execute(SQL, (email,))
+        treinoDataRecente = cursor.fetchone()
+
+        if not treinoDataRecente:
+            return jsonify({"message": "Nenhum treino encontrado."}), 404
+
+        nome_treino = treinoDataRecente.get('fkNomeTreino')
+
+        # tenta obter a rotina à qual o treino pertence
+        SQL_ROTINA = """
+            SELECT fkNomeRotina
+            FROM TreinoRotina
+            WHERE fkNomeTreino = %s
+              AND fkEmail_CriadorTreino = %s
+            LIMIT 1
+        """
+        cursor.execute(SQL_ROTINA, (nome_treino, email))
+        rotina_row = cursor.fetchone()
+        nome_rotina = rotina_row.get('fkNomeRotina') if rotina_row else None
+
+        # lista outros treinos da mesma rotina (exclui o treino atual)
+        proximos_list = []
+        if nome_rotina:
+            SQL_PROX = """
+                SELECT fkNomeTreino
+                FROM TreinoRotina
+                WHERE fkNomeRotina = %s
+                  AND fkEmail_CriadorTreino = %s
+                  AND fkNomeTreino <> %s
+            """
+            cursor.execute(SQL_PROX, (nome_rotina, email, nome_treino))
+            proximos_rows = cursor.fetchall() or []
+            proximos_list = [r.get('fkNomeTreino') for r in proximos_rows if r.get('fkNomeTreino')]
+
+        result = {
+            "dataDoTreino": treinoDataRecente.get('dataDoTreino'),
+            "nomeDoTreino": nome_treino,
+            "nomeDaRotina": nome_rotina,
+            "proximosTreinos": proximos_list,
+        }
+
+        return jsonify(result), 200
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Erro ao buscar dados do último treino."}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

@@ -331,5 +331,13 @@ export const api = {
         valorAtual?: number;
         message?: string;
       }>("/metas", { auth: true }),
+    ultimoTreino: () =>
+      request<{
+        dataDoTreino?: string;
+        nomeDoTreino?: string;
+        nomeDaRotina?: string | null;
+        proximosTreinos?: string[];
+        message?: string;
+      }>("/ultimo_treino", { auth: true }),
   },
 };
