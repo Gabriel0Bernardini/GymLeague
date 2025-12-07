@@ -306,4 +306,15 @@ export const api = {
         auth: true,
       }),
   },  
+  home: {
+    pesoPercentual: () =>
+      request<{ peso: number | null; percentual_gordura: number | null }>(
+        "/peso_percentual",
+        { auth: true }
+      ),
+
+    ranking: () => request<{ message?: string }>("/ranking", { auth: true }),
+
+    metas: () => request<any[]>("/metas", { auth: true }),
+  },
 };
