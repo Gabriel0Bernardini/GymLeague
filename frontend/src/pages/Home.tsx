@@ -6,9 +6,7 @@ import CardMetaAtual from "../components/home/MetaAtualCard";
 import CardPesoAtual from "../components/home/PesoAtualCard";
 import CardRankingGeral from "../components/home/RankingGeralCard";
 import FichasPersonalizadasCard from "../components/home/cardsPaginas/FichasPersonalizadasCard";
-import MinhaEvolucaoCard from "../components/home/cardsPaginas/MinhaEvolucaoCard";
 import MinhasFichasCard from "../components/home/cardsPaginas/MinhasFichasCard";
-import RelatorioCard from "../components/home/cardsPaginas/RelatorioCard";
 import Footer from "../components/ui/Footer";
 import GreetingsCard from "../components/home/GreetingsCard";
 
@@ -54,11 +52,9 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <div className="grid md:grid-cols-2 gap-4 p-4">
           <MinhasFichasCard />
-          <MinhaEvolucaoCard />
           <FichasPersonalizadasCard />
-          <RelatorioCard />
         </div>
 
         <Footer />
