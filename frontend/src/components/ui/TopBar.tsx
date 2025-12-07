@@ -31,37 +31,43 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
 
       <nav className="flex gap-6 text-xl">
         
-        <a href="/home">
+        <a href="/home" title="Home Page">
           <FaHome 
             className={`h-7 w-7 ${isActive("/home") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/meus-treinos">
+        <a href="/meus-treinos" title="Meus Treinos">
           <BiNotepad 
             className={`h-7 w-7 ${isActive("/meus-treinos") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/treinar">
+        <a href="/evolucao" title="Evolução">
+          <FaChartLine 
+            className={`h-7 w-7 ${isActive("/evolucao") ? activeIcon : inactiveIcon}`}
+          />
+        </a>
+
+        <a href="/treinar" title="Cadastrar treinos">
           <GiWeightLiftingUp 
             className={`h-7 w-7 ${isActive("/treinar") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/explorar-rotinas">
+        <a href="/explorar-rotinas" title="Explorar Rotinas">
           <FaRegClipboard 
             className={`h-7 w-7 ${isActive("/explorar-rotinas") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/inserir-exercicio">
+        <a href="/inserir-exercicio" title="Inserir Exercício">
           <LuDumbbell 
             className={`h-7 w-7 ${isActive("/inserir-exercicio") ? activeIcon : inactiveIcon}`}
           />  
         </a>
 
-        <a href = "/ranking">
+        <a href = "/ranking" title="Ranking e Metas">
           <FaTrophy 
             className={`h-7 w-7 ${isActive("/ranking") ? activeIcon : inactiveIcon}`}
           />
