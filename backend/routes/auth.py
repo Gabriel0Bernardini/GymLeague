@@ -10,6 +10,8 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 ALGORITHM = "HS256"
+SQL_SELCECT_USER_BY_EMAIL = "SELECT * FROM Usuario WHERE email = %s"
+
 
 def generate_token(user_row):
     dataNascimento = user_row.get("dataNascimento")
@@ -38,7 +40,7 @@ def generate_token(user_row):
 @auth_bp.post("/login")
 def login():
     if not request.is_json:
-        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpoooo inválido"}), 400
 
     data = request.get_json()
     email = (data.get("email") or "").strip()
@@ -51,7 +53,7 @@ def login():
     cur = conn.cursor(dictionary=True)
 
     try:
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
     finally:
         cur.close()
@@ -67,7 +69,7 @@ def login():
 @auth_bp.post("/register")
 def register():
     if not request.is_json:
-        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpoooooooo inválido"}), 400
 
     data = request.get_json()
     email = (data.get("email") or "").strip()
@@ -91,7 +93,7 @@ def register():
         )
         conn.commit()
 
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
     except Exception:
         conn.rollback()
@@ -149,7 +151,7 @@ def update():
         conn.commit()
 
         # RECUPERAR DADOS COMPLETOS DO USUÁRIO
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
 
     except:
