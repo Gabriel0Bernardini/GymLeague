@@ -19,6 +19,13 @@ type MetaResp = {
 
 export default function MetaAtualCard() {
   const [data, setData] = useState<MetaResp | null>(null);
+  const [ultimo, setUltimo] = useState<{
+    dataDoTreino?: string;
+    nomeDoTreino?: string;
+    nomeDaRotina?: string | null;
+    proximosTreinos?: string[];
+    message?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +34,27 @@ export default function MetaAtualCard() {
     (async () => {
       try {
         setLoading(true);
-        const res = await api.home.metas();
+
+        const [metaResResult, ultimoResult] = await Promise.allSettled([
+          api.home.metas(),
+          api.home.ultimoTreino(),
+        ]);
+
         if (!mounted) return;
-        setData(res);
+
+        if (metaResResult.status === "fulfilled") {
+          setData(metaResResult.value);
+        } else {
+          // fatal for meta card
+          setError((metaResResult.reason && metaResResult.reason.message) || "Erro ao carregar meta.");
+        }
+
+        if (ultimoResult.status === "fulfilled") {
+          setUltimo(ultimoResult.value);
+        } else {
+          // non-fatal: set null (no last treino)
+          setUltimo(null);
+        }
       } catch (err: any) {
         setError(err?.message || "Erro ao carregar meta.");
       } finally {
@@ -110,11 +135,26 @@ export default function MetaAtualCard() {
           <h2 className="text-xl font-bold mb-2">Treino</h2>
 
           <p className="text-white text-base">
-            Ficha atual: <strong>A - Hipertrofia</strong>
+            Último treino: <strong>{ultimo?.nomeDoTreino ?? "-"}</strong>
+          </p>
+
+          <p className="text-white text-sm opacity-90 mt-1">
+            Data: <strong>{ultimo?.dataDoTreino ? new Date(ultimo.dataDoTreino).toLocaleDateString() : "-"}</strong>
+          </p>
+
+          <p className="text-white text-base mt-2">
+            Rotina: <strong>{ultimo?.nomeDaRotina ?? "-"}</strong>
           </p>
 
           <p className="text-white text-base mt-1">
-            Próximo treino: <strong>Treino B - Costas e Bíceps</strong>
+            Próximos treinos da rotina:
+            <strong className="block mt-1">
+              {ultimo?.proximosTreinos && ultimo.proximosTreinos.length > 0 ? (
+                ultimo.proximosTreinos.join(", ")
+              ) : (
+                "-"
+              )}
+            </strong>
           </p>
         </div>
       </div>
