@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from db import get_conn
 from datetime import date
 from utils.auth import require_auth
+from routes.ranking import atualizar_ranking_musculo, calcular_media_grupo, atualizar_ranking_geral_usuario
 
 treinar_bp = Blueprint("treinar", __name__, url_prefix="/treinar")
 
@@ -171,6 +172,10 @@ def inserir_serie():
         hoje
     ))
 
+
+    atualizar_ranking_musculo(conn, cursor, email_usuario, body["nome_exercicio"], body["carga"], body["repeticoes"])
+    calcular_media_grupo(conn, cursor, email_usuario, body["nome_exercicio"])
+    atualizar_ranking_geral_usuario(conn, cursor, email_usuario)
     conn.commit()
     cursor.close()
     conn.close()
