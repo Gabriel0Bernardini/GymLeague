@@ -26,7 +26,6 @@ export default function RankingGeralCard({
               <h2 className="text-lg font-semibold">Ranking Geral</h2>
               <p className="text-gray-700 text-sm">
               <strong>{rankingGeral}</strong>
-               {/* TODO: substituir por ranking.posicao retornado da API */}
               </p>
             </div>
 

@@ -319,7 +319,7 @@ export const api = {
         { auth: true }
       ),
 
-    ranking: () => request<{ message?: string }>("/ranking", { auth: true }),
+    ranking: () => request<{ rankingGeral?: string }>("/ranking", { auth: true }),
 
     metas: () =>
       request<{

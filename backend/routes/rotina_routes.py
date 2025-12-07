@@ -74,8 +74,8 @@ def criar_rotina():
 
         existe = cur.fetchone()
         if not existe:
-            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo) VALUES (%s, %s, %s, %s, %s)",
-                        ("MetaPadrão", email, 3.14, "", "p"))
+            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                        ("MetaPadrão", email, 3.14, "", "X",0))
 
 
         
@@ -566,6 +566,16 @@ def editar_rotina(nome_rotina):
                     detalhe = serie.get("detalhe") or ""
 
                     cur.execute("""
+                        SELECT 1 FROM Metas 
+                        WHERE titulo = %s AND fk_emailUsuario = %s
+                    """, ("MetaPadrão", email))
+
+                    existe = cur.fetchone()
+                    if not existe:
+                        cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                                    ("MetaPadrão", email, 3.14, "", "X",0))
+
+                    cur.execute("""
                         INSERT INTO Serie (
                             numero, detalhe, repeticoes, carga,
                             fk_nomeExercicio, fkNomeTreino,
@@ -595,6 +605,7 @@ def editar_rotina(nome_rotina):
 
     except Exception as e:
         conn.rollback()
+        print(e)
         return jsonify({"message": "Erro ao editar rotina", "detail": str(e)}), 500
     finally:
         cur.close()
