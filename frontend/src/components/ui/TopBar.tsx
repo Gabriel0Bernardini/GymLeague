@@ -2,10 +2,11 @@ import { FaUser } from "react-icons/fa";
 import { IoLogOut } from "react-icons/io5";
 import { BiNotepad } from "react-icons/bi";        
 import { FaChartLine } from "react-icons/fa";       
-import { FaRegClipboard } from "react-icons/fa";     
-import { FaCalendarAlt } from "react-icons/fa";     
+import { FaRegClipboard } from "react-icons/fa";    
+import { GiWeightLiftingUp } from "react-icons/gi";
 import { FaHome } from "react-icons/fa";
 import { LuDumbbell } from "react-icons/lu";
+import { FaTrophy } from "react-icons/fa";
 
 import { useLocation } from "react-router-dom";
 
@@ -42,9 +43,9 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
           />
         </a>
 
-        <a href="/evolucao">
-          <FaChartLine 
-            className={`h-7 w-7 ${isActive("/evolucao") ? activeIcon : inactiveIcon}`}
+        <a href="/treinar">
+          <GiWeightLiftingUp 
+            className={`h-7 w-7 ${isActive("/treinar") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
@@ -54,16 +55,16 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
           />
         </a>
 
-        <a href="/calendario">
-          <FaCalendarAlt 
-            className={`h-7 w-7 ${isActive("/calendario") ? activeIcon : inactiveIcon}`}
-          />
-        </a>
-
         <a href="/inserir-exercicio">
           <LuDumbbell 
             className={`h-7 w-7 ${isActive("/inserir-exercicio") ? activeIcon : inactiveIcon}`}
           />  
+        </a>
+
+        <a href = "/ranking">
+          <FaTrophy 
+            className={`h-7 w-7 ${isActive("/ranking") ? activeIcon : inactiveIcon}`}
+          />
         </a>
       </nav>
 
