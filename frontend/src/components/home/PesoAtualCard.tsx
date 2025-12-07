@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../libs/api";
 
 export type CardPesoAtualProps = {};
@@ -75,7 +74,7 @@ export default function PesoAtualCard(_: CardPesoAtualProps) {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold">% Gordura</h2>
+          <h2 className="text-lg font-semibold">  Gordura</h2>
           <p className="text-gray-800 font-semibold">{loading ? "..." : formatPercent(percentual)}</p>
         </div>
       </div>
