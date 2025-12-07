@@ -315,6 +315,21 @@ export const api = {
 
     ranking: () => request<{ message?: string }>("/ranking", { auth: true }),
 
-    metas: () => request<any[]>("/metas", { auth: true }),
+    metas: () =>
+      request<{
+        meta?: {
+          titulo?: string;
+          objetivo?: number;
+          tipo?: string;
+          valorInicial?: number | null;
+        };
+        usuario?: {
+          peso?: number;
+          percentual_gordura?: number;
+        };
+        percentComplete?: number;
+        valorAtual?: number;
+        message?: string;
+      }>("/metas", { auth: true }),
   },
 };
