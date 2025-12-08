@@ -5,7 +5,7 @@ import mysql.connector
 inserirExercicios_bp = Blueprint("inserirExercicios", __name__, url_prefix="/inserirExercicio")
 
 @inserirExercicios_bp.get("/")
-def buscarMusculos():
+def buscar_musculos():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     
