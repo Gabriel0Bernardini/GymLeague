@@ -46,8 +46,6 @@ export default function SeletorExercicio({
     };
   }, [aberto]);
 
-  const exercicioSelecionado = exercicios.find((ex) => ex.nome === selecionado);
-
   return (
     <div ref={containerRef} className="relative w-full sm:w-80">
       {/* Botão de abertura */}

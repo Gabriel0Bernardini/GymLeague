@@ -6,6 +6,10 @@ import mysql.connector
 
 evolucao_bp = Blueprint("evolucao", __name__, url_prefix="/evolucao")
 
+msgDBERROR = "DB ERROR:"
+msgINTERNALERROR = "Erro interno no BD"
+msgSERVERERROR = "SERVER ERROR:"
+msgSERVERERR_2 = "Erro no servidor"
 
 @evolucao_bp.get("/treinoCompletoData")
 @require_auth
@@ -26,9 +30,9 @@ def get_treinoCompletoData():
             AND dataDoTreino <> '9999-12-31'
         """
         cursor.execute(SQL, (email,))
-        treinosData = cursor.fetchall()
+        treinos_data = cursor.fetchall()
 
-        for treino in treinosData:
+        for treino in treinos_data:
             nomeTreino = treino["fknomeTreino"]
             dataDoTreino = treino["dataDoTreino"]
 
@@ -45,7 +49,7 @@ def get_treinoCompletoData():
                 inner.execute(SQL, (email, email, nomeTreino))
                 rotina = inner.fetchone()
 
-                nomeRotina = rotina["fkNomeRotina"] if rotina else None
+                nome_rotina = rotina["fkNomeRotina"] if rotina else None
 
                 SQL = """
                     SELECT num_Series, descricao, fkNomeExercicio
@@ -82,7 +86,7 @@ def get_treinoCompletoData():
 
                 resposta.append({
                     "nomeTreino": nomeTreino,
-                    "nomeRotina": nomeRotina,
+                    "nomeRotina": nome_rotina,
                     "dataDoTreino": str(dataDoTreino),
                     "exercicios": lista_exercicios,
                 })
@@ -98,7 +102,7 @@ def get_treinoCompletoData():
         return jsonify(resposta), 200
 
     except mysql.connector.Error as db_err:
-        print("DB ERROR:", db_err)
+        print(msgDBERROR, db_err)
         # tentar fechar recursos sem lançar
         try:
             if cursor:
@@ -110,10 +114,10 @@ def get_treinoCompletoData():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro interno no BD"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
-        print("SERVER ERROR:", err)
+        print(msgSERVERERROR, err)
         try:
             if cursor:
                 cursor.close()
@@ -124,7 +128,7 @@ def get_treinoCompletoData():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro no servidor"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
 
 @evolucao_bp.get("/pesoCorporal")
@@ -151,7 +155,7 @@ def get_evolucaoPesoCorporal():
         return jsonify({"pesagens": rows})
 
     except mysql.connector.Error as db_err:
-        print("DB ERROR:", db_err)
+        print(msgDBERROR, db_err)
         try:
             if cursor:
                 cursor.close()
@@ -162,10 +166,10 @@ def get_evolucaoPesoCorporal():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro interno no BD"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
-        print("SERVER ERROR:", err)
+        print(msgSERVERERROR, err)
         try:
             if cursor:
                 cursor.close()
@@ -176,7 +180,7 @@ def get_evolucaoPesoCorporal():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro no servidor"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
 
 @evolucao_bp.get("/percentualGordura")
@@ -212,7 +216,7 @@ def get_evolucaoPercentualGordura():
         return jsonify({"gordura": resultado})
 
     except mysql.connector.Error as db_err:
-        print("DB ERROR:", db_err)
+        print(msgDBERROR, db_err)
         try:
             if cursor:
                 cursor.close()
@@ -223,10 +227,10 @@ def get_evolucaoPercentualGordura():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro interno no BD"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
-        print("SERVER ERROR:", err)
+        print(msgSERVERERROR, err)
         try:
             if cursor:
                 cursor.close()
@@ -237,7 +241,7 @@ def get_evolucaoPercentualGordura():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro no servidor"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
 
 @evolucao_bp.get("/exerciciosRealizados")
@@ -276,7 +280,7 @@ def get_exerciciosRealizados():
         return jsonify({"exercicios": resultado}), 200
 
     except mysql.connector.Error as db_err:
-        print("DB ERROR:", db_err)
+        print(msgDBERROR, db_err)
         try:
             if cursor:
                 cursor.close()
@@ -287,10 +291,10 @@ def get_exerciciosRealizados():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro interno no BD"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
-        print("SERVER ERROR:", err)
+        print(msgSERVERERROR, err)
         try:
             if cursor:
                 cursor.close()
@@ -301,7 +305,7 @@ def get_exerciciosRealizados():
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro no servidor"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
 
 @evolucao_bp.get("/evolucaoExercicio/<nome_exercicio>")
@@ -357,7 +361,7 @@ def get_evolucaoExercicio(nome_exercicio):
         return jsonify({"exercicio": nome_exercicio, "evolucao": resultado}), 200
 
     except mysql.connector.Error as db_err:
-        print("DB ERROR:", db_err)
+        print(msgDBERROR, db_err)
         try:
             if cursor:
                 cursor.close()
@@ -368,10 +372,10 @@ def get_evolucaoExercicio(nome_exercicio):
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro interno no BD"}), 500
+        return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
-        print("SERVER ERROR:", err)
+        print(msgSERVERERROR, err)
         try:
             if cursor:
                 cursor.close()
@@ -382,4 +386,4 @@ def get_evolucaoExercicio(nome_exercicio):
                 conn.close()
         except Exception:
             pass
-        return jsonify({"message": "Erro no servidor"}), 500
+        return jsonify({"message": msgSERVERERR_2}), 500

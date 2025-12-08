@@ -3,6 +3,14 @@ import { api } from "../../libs/api";
 
 export type CardPesoAtualProps = {};
 
+function formatPercent(v: number | null) {
+  if (v === null || v === undefined) return "-";
+  const n = Number(v);
+  const value = n <= 1 ? n * 100 : n;
+  return `${value.toFixed(1)}%`;
+}
+
+
 export default function PesoAtualCard(_: CardPesoAtualProps) {
   const [peso, setPeso] = useState<number | null>(null);
   const [percentual, setPercentual] = useState<number | null>(null);
@@ -31,12 +39,6 @@ export default function PesoAtualCard(_: CardPesoAtualProps) {
     };
   }, []);
 
-  function formatPercent(v: number | null) {
-    if (v === null || v === undefined) return "-";
-    const n = Number(v);
-    const value = n <= 1 ? n * 100 : n;
-    return `${value.toFixed(1)}%`;
-  }
 
   return (
     <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-4">

@@ -30,8 +30,8 @@ def generate_token(user_row):
         "altura": user_row.get("altura"),
         "percentual_gordura": user_row.get("percentual_gordura"),
         "idade": idade,
-        "exp": datetime.utcnow() + timedelta(hours=8),
-        "iat": datetime.utcnow(),
+        "exp": datetime.now(datetime.timezone.utc) + timedelta(hours=8),
+        "iat": datetime.now(datetime.timezone.utc),
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -73,10 +73,10 @@ def register():
 
     data = request.get_json()
     email = (data.get("email") or "").strip()
-    pNome = (data.get("pNome") or "").strip()
+    p_Nome = (data.get("pNome") or "").strip()
     senha = data.get("senha") or ""
 
-    if not email or not pNome or not senha:
+    if not email or not p_Nome or not senha:
         return jsonify({"code": "BAD_REQUEST", "message": "Email, nome e senha são obrigatórios"}), 400
 
     conn = get_conn()
@@ -89,7 +89,7 @@ def register():
 
         cur.execute(
             "INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)",
-            (email, pNome, senha)
+            (email, p_Nome, senha)
         )
         conn.commit()
 
@@ -154,7 +154,7 @@ def update():
         cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
 
-    except:
+    except Exception:
         conn.rollback()
         return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao atualizar usuário"}), 500
     finally:
