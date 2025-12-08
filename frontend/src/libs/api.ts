@@ -154,6 +154,7 @@ export const api = {
       usuarioEmail: string;
       titulo: string;
       valorMeta: number;
+      valorInicial: number;
       descricao?: string | null;
       tipoMeta?: string | null;
     }) =>
@@ -162,13 +163,13 @@ export const api = {
         auth: true,
         body: JSON.stringify(payload),
       }),
-      
-    excluir: (payload: { usuarioEmail: string; titulo: string }) =>
+
+    excluir: (payload: { usuarioEmail: string; titulo: string; valorInicial: number }) =>
       request<{ mensagem: string }>("/metas/deletar", {
         method: "DELETE",
         auth: true,
         body: JSON.stringify(payload),
-      }),  
+      }),
   },
 
   exercicios: {
