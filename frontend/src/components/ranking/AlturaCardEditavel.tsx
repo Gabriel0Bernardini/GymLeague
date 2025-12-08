@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../libs/api";
 
-export default function alturaAtualCard() {
+export default function AlturaAtualCard() {
   const [editMode, setEditMode] = useState(false);
   const [altura, setAltura] = useState<number | null>(null);
   const originalAlturaRef = useRef<number | null>(null);
