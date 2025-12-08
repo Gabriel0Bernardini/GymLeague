@@ -160,7 +160,10 @@ def get_metas():
                         inicial_num = float(inicial)
                         # evita divisão por zero
                         if objetivo_num == inicial_num:
-                            pct = 100.0 if atual_num == objetivo_num else (0.0 if atual_num == inicial_num else 0.0)
+                            if atual_num == objetivo_num:
+                                pct = 100.0
+                            else:
+                                pct = 0.0
                         else:
                             pct = ((atual_num - inicial_num) / (objetivo_num - inicial_num)) * 100.0
                     except Exception:
