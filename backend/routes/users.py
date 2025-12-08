@@ -20,7 +20,7 @@ def list_users():
 def get_user(email):
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT email, pNome, dataNascimento, peso, altura, percentual_gordura, f_nomeRotinaUsando, fEmail_criadorRotina FROM Usuario WHERE email = %s", (email,))
+    cur.execute("SELECT email, pNome, dataNascimento, peso, altura, percentual_gordura, f_nomeRotinaUsando, fEmail_criadorRotina, ranking_geral FROM Usuario WHERE email = %s", (email,))
     user = cur.fetchone()
     cur.close()
     conn.close()

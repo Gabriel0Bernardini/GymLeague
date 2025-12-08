@@ -4,7 +4,7 @@ from db import get_conn
 from utils.auth import decode_token
 import jwt
 import os
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -30,8 +30,8 @@ def generate_token(user_row):
         "altura": user_row.get("altura"),
         "percentual_gordura": user_row.get("percentual_gordura"),
         "idade": idade,
-        "exp": datetime.now(datetime.timezone.utc) + timedelta(hours=8),
-        "iat": datetime.now(datetime.timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+        "iat": datetime.now(timezone.utc),
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
