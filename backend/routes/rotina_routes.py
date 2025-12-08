@@ -1,4 +1,3 @@
-# backend/routes/rotina_routes.py
 from flask import Blueprint, jsonify, request, g
 from utils.auth import require_auth
 from db import get_conn
@@ -52,14 +51,11 @@ def criar_rotina():
     cur = conn.cursor()
 
     try:
-        # 1) Inserir Rotina (verifica se já existe)
-        # Rotina tem PK (nome, fEmail_usuarioCriador)
         cur.execute("""
                 INSERT INTO Rotina (nome, fEmail_usuarioCriador, publico)
                 VALUES (%s, %s, %s)
             """, (nome_rotina, email, publico_rotina))
 
-        # Limpar treinos ligados à rotina
         cur.execute("""
             DELETE FROM TreinoRotina
             WHERE fkNomeRotina = %s AND fkEmail_CriadorRotina = %s
@@ -78,10 +74,6 @@ def criar_rotina():
                         ("MetaPadrão", email, 3.14, "", "X",0))
 
 
-        
-        
-            
-        # 2) Para cada ficha: criar Treino (se necessário) e inserir TreinoRotina
         for ficha in fichas:
             nome_ficha = (ficha.get("nome") or "").strip()
             exercicios = ficha.get("exercicios", [])
@@ -99,24 +91,20 @@ def criar_rotina():
                 cur.execute("INSERT INTO Treino (nome, fEmail_usuarioCriador, publico) VALUES (%s, %s, %s)",
                             (nome_ficha, email, ficha_publico))
             else:
-                # se já existir, atualiza flag publico do treino conforme payload
                 cur.execute("UPDATE Treino SET publico = %s WHERE nome = %s AND fEmail_usuarioCriador = %s",
                             (ficha_publico, nome_ficha, email))
 
-            # inserir ligação TreinoRotina
             cur.execute("""
                 INSERT IGNORE INTO TreinoRotina (
                     fkEmail_CriadorTreino, fkNomeTreino, fkEmail_CriadorRotina, fkNomeRotina
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, nome_rotina))
-            
-            # limpar TreinoExercicio do treino
+
             cur.execute("""
                 DELETE FROM TreinoExercicio
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
 
-        
                
             #TABELA USUSARIO TREINO PLACEHOLDER MUDAR DEPOIS
         
@@ -139,13 +127,11 @@ def criar_rotina():
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
             
-            
-            # 3) Para cada exercício da ficha: garantir Exercicio e inserir TreinoExercicio
             for ex in exercicios:
                 nome_ex = ex.get("nome")
                 num_series = int(ex.get("series") or 0)
                 descricao = ex.get("descricao", "")
-                seriesData = ex.get("seriesData", [])
+                series_data = ex.get("seriesData", [])
 
                 if not nome_ex:
                     continue
@@ -166,7 +152,7 @@ def criar_rotina():
                 ))
 
                 # Inserir cada série
-                for idx, serie in enumerate(seriesData, start=1):
+                for idx, serie in enumerate(series_data, start=1):
                     
                     
                     carga_raw = serie.get("carga")
@@ -179,7 +165,7 @@ def criar_rotina():
                     repeticoes_raw = serie.get("repeticoes")
                     try:
                         repeticoes = int(repeticoes_raw) if repeticoes_raw not in (None, "", " ") else 0
-                    except:
+                    except Exception:
                         repeticoes = 0
 
                     # Detalhe
