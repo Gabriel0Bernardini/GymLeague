@@ -6,6 +6,9 @@ import datetime
 
 rotinas_bp = Blueprint("rotinas", __name__, url_prefix="/rotinas")
 
+META_PADRAO = "MetaPadrão"
+ROTINA_NOT_FOUND = "Rotina não encontrada"
+
 @rotinas_bp.get("/")
 @require_auth
 def listar_rotinas():
@@ -66,12 +69,12 @@ def criar_rotina():
         cur.execute("""
             SELECT 1 FROM Metas 
             WHERE titulo = %s AND fk_emailUsuario = %s
-        """, ("MetaPadrão", email))
+        """, (META_PADRAO, email))
 
         existe = cur.fetchone()
         if not existe:
             cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
-                        ("MetaPadrão", email, 3.14, "", "X",0))
+                        (META_PADRAO, email, 3.14, "", "X",0))
 
 
         for ficha in fichas:
@@ -195,7 +198,7 @@ def criar_rotina():
                         email,
                         email,  # por enquanto o usuário do treino é o criador
                         placeholder_date,
-                        "MetaPadrão"  # título da meta padrão
+                        META_PADRAO  # título da meta padrão
                     ))
 
         conn.commit()
@@ -236,7 +239,7 @@ def obter_rotina(nome_rotina):
         rotina = cur.fetchone()
 
         if not rotina:
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # Buscar fichas da rotina (Treinos)
         cur.execute("""
@@ -330,7 +333,7 @@ def excluir_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 1) Buscar todas as fichas (treinos) dessa rotina
         cur.execute("""
@@ -434,7 +437,7 @@ def editar_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 2) Apagar vínculos antigos
         cur.execute("""
@@ -554,12 +557,12 @@ def editar_rotina(nome_rotina):
                     cur.execute("""
                         SELECT 1 FROM Metas 
                         WHERE titulo = %s AND fk_emailUsuario = %s
-                    """, ("MetaPadrão", email))
+                    """, (META_PADRAO, email))
 
                     existe = cur.fetchone()
                     if not existe:
                         cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
-                                    ("MetaPadrão", email, 3.14, "", "X",0))
+                                    (META_PADRAO, email, 3.14, "", "X",0))
 
                     cur.execute("""
                         INSERT INTO Serie (
@@ -584,7 +587,7 @@ def editar_rotina(nome_rotina):
                         email,
                         email,
                         placeholder_date,
-                        "MetaPadrão"
+                        META_PADRAO
                     ))
 
         conn.commit()
