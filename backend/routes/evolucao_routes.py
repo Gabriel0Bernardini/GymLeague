@@ -26,9 +26,9 @@ def get_treinoCompletoData():
             AND dataDoTreino <> '9999-12-31'
         """
         cursor.execute(SQL, (email,))
-        treinosData = cursor.fetchall()
+        treinos_data = cursor.fetchall()
 
-        for treino in treinosData:
+        for treino in treinos_data:
             nomeTreino = treino["fknomeTreino"]
             dataDoTreino = treino["dataDoTreino"]
 
@@ -45,7 +45,7 @@ def get_treinoCompletoData():
                 inner.execute(SQL, (email, email, nomeTreino))
                 rotina = inner.fetchone()
 
-                nomeRotina = rotina["fkNomeRotina"] if rotina else None
+                nome_rotina = rotina["fkNomeRotina"] if rotina else None
 
                 SQL = """
                     SELECT num_Series, descricao, fkNomeExercicio
@@ -82,7 +82,7 @@ def get_treinoCompletoData():
 
                 resposta.append({
                     "nomeTreino": nomeTreino,
-                    "nomeRotina": nomeRotina,
+                    "nomeRotina": nome_rotina,
                     "dataDoTreino": str(dataDoTreino),
                     "exercicios": lista_exercicios,
                 })
