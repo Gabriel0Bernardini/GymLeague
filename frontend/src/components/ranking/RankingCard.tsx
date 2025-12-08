@@ -1,8 +1,24 @@
+import { api } from "../../libs/api";
+import {useState, useEffect} from "react";
+
 type GreetingsCardProps = {
   user: { pNome: string; email: string } | null;
 };
 
 export default function GreetingsCard({ user}: GreetingsCardProps) {
+    const [ranking, setRanking] = useState<string | null>(null);
+
+    useEffect(() => {
+      async function fetchRanking() {
+        if (!user?.email) return;
+        const dados = await api.users.get(user.email);
+        setRanking(dados.ranking_geral || "NULO");
+      }
+      fetchRanking();
+      window.addEventListener("focus", fetchRanking);
+      return () => window.removeEventListener("focus", fetchRanking);
+    }, [user?.email]);
+
 
     return (
         <div className="p-4">
@@ -23,7 +39,7 @@ export default function GreetingsCard({ user}: GreetingsCardProps) {
                 </p>
                 <p className="text-gray-600 text-sm">
                     Ranking Atual:
-                    <span className="font-bold text-xl"> Prata II</span>
+                    <span className="font-bold text-xl"> {ranking ?? "Carregando..."}</span>
                 </p>
                 </div>
     

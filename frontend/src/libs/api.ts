@@ -83,6 +83,7 @@ export const api = {
         peso: number | null;
         altura: number | null;
         percentual_gordura: number | null;
+        ranking_geral: string | null;
       }>(`/users/${email}`, { auth: true }),
   },
 
