@@ -44,7 +44,7 @@ def buscar_musculos():
         conn.close()
     
 @inserirExercicios_bp.post("/")
-def insertExercicio():
+def insert_exercicio():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     
