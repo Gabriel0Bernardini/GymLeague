@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../../libs/api";
 
 type Meta = {
@@ -6,6 +6,7 @@ type Meta = {
   tipo: "Peso" | "Percentual de gordura";
   objetivo: number;
   atual: number;
+  inicial: number;   
   descricao?: string;
 };
 
@@ -16,32 +17,70 @@ export default function MetasCard() {
   const [objetivo, setObjetivo] = useState<number>(0);
   const [atual, setAtual] = useState<number>(0);
   const [descricao, setDescricao] = useState<string>("");
-  // Para edição
   const [editIdx, setEditIdx] = useState<number | null>(null);
+  const notifiedRef = useRef<Set<string>>(new Set());
+  function notifiedKey(titulo: string, inicial: number) {
+    return `${titulo}::${inicial}`;
+  }
+
+  function calcProgress(objetivoNum: number, atualNum: number, inicialNum?: number) {
+    if (objetivoNum > 0 && atualNum > 0 && inicialNum !== undefined) {
+      if (inicialNum !== objetivoNum && inicialNum !== 0) {
+        let progresso = ((inicialNum - atualNum) / (inicialNum - objetivoNum)) * 100;
+        return Math.max(0, Math.min(progresso, 100));
+      }
+    }
+    return 0;
+  }
 
   const carregar = useCallback(async () => {
     const me = await api.auth.me();
-    const dados = await api.metas.listar(me.email);
-    const user = await api.users.get(me.email);
-    const adaptadas = dados.map((m: any) => {
-    const userPeso = Number(user.peso ?? 0);
-    const userPercentual = Number(user.percentual_gordura ?? 0) * 100;
+    let attempts = 0;
+    while (attempts < 3) {
+      const dados = await api.metas.listar(me.email);
+      const user = await api.users.get(me.email);
 
-    const tipo: "Peso" | "Percentual de gordura" = m.tipo === "P" ? "Peso" : "Percentual de gordura";
-    const atualRaw = tipo === "Peso" ? userPeso : userPercentual;
+      const adaptadas: Meta[] = dados.map((m: any) => {
+        const userPeso = Number(user.peso ?? 0);
+        const userPercentual = Number(user.percentual_gordura ?? 0) * 100;
 
-    const atual = Math.round(Number(atualRaw) || 0);
+        const tipo: "Peso" | "Percentual de gordura" = m.tipo === "P" ? "Peso" : "Percentual de gordura";
+        const atualRaw = tipo === "Peso" ? userPeso : userPercentual;
+        const atual = Math.round(Number(atualRaw) || 0);
 
-    return {
-      titulo: m.titulo,
-      tipo,
-      objetivo: Math.round(Number(m.objetivo) || 0),
-      atual,
-      descricao: m.descricao || undefined,
-    } as Meta;
-  });
+        return {
+          titulo: m.titulo,
+          tipo,
+          objetivo: Math.round(Number(m.objetivo) || 0),
+          atual,
+          inicial: Math.round(Number(m.valor_inicial) || 0),
+          descricao: m.descricao || undefined,
+        } as Meta;
+      });
 
-    setMetas(adaptadas);
+      const completadas = adaptadas.filter((m) => {
+        const progresso = calcProgress(m.objetivo, m.atual, m.inicial);
+        return progresso >= 100 && !notifiedRef.current.has(notifiedKey(m.titulo, m.inicial))
+      });
+
+      if (completadas.length === 0) {
+        setMetas(adaptadas);
+        break;
+      }
+
+      for (const c of completadas) {
+        try {
+          window.alert(`Parabéns — você concluiu ${c.titulo}!`);
+          await api.metas.excluir({ usuarioEmail: me.email, titulo: c.titulo, valorInicial: c.inicial });
+          notifiedRef.current.add(notifiedKey(c.titulo, c.inicial));
+        } catch (err) {
+          console.error("Erro ao excluir meta concluída:", c.titulo, err);
+          notifiedRef.current.add(notifiedKey(c.titulo, c.inicial));
+        }
+      }
+
+      attempts++;
+    }
   }, []);
 
   useEffect(() => {
@@ -98,6 +137,7 @@ export default function MetasCard() {
         tipo,
         objetivo: Math.round(Number(m.objetivo) || 0),
         atual,
+        inicial: Math.round(Number(m.valor_inicial) || 0),
         descricao: m.descricao || undefined,
       } as Meta;
     });
@@ -118,7 +158,8 @@ export default function MetasCard() {
       const me = await api.auth.me();
       const payload = {
         usuarioEmail: me.email,
-        titulo: meta.tipo,
+        titulo: meta.titulo,
+        valorInicial: meta.inicial,
         descricao: descricao || "",
         valorMeta: objetivo,
         tipoMeta: meta.tipo === "Peso" ? "P" : "G",
@@ -138,7 +179,8 @@ export default function MetasCard() {
     if(!meta) return;
     try{
       const me = await api.auth.me();
-      await api.metas.excluir({usuarioEmail: me.email, titulo: meta.titulo});
+      await api.metas.excluir({ usuarioEmail: me.email, titulo: meta.titulo, valorInicial: meta.inicial });
+      notifiedRef.current.add(notifiedKey(meta.titulo, meta.inicial));
       await carregar();
       fecharModal();
     } catch(err) {
@@ -189,12 +231,12 @@ export default function MetasCard() {
             let progresso = 0;
 
             if (objetivoNum > 0 && atualNum > 0) {
-              const menor = atualNum < objetivoNum;
-              progresso = menor
-                ? Math.min((atualNum / objetivoNum) * 100, 100)
-                : Math.min((objetivoNum / atualNum) * 100, 100);
-            } else {
-              progresso = 0;
+              const inicialNum = Number(meta.inicial);
+
+              if (inicialNum !== objetivoNum) {
+                progresso = ((inicialNum - atualNum) / (inicialNum - objetivoNum)) * 100;
+                progresso = Math.max(0, Math.min(progresso, 100)); 
+              }
             }
             return (
               <li key={idx} className="p-3 bg-gray-50 border rounded-lg">
@@ -242,7 +284,9 @@ export default function MetasCard() {
               {editIdx === null ? "Adicionar Meta" : "Editar Meta"}
             </h3>
             <div className="mb-3">
-              <label className="block mb-1 font-semibold">Tipo de Meta</label>
+              <label className="block mb-1 font-semibold" htmlFor="tipoMeta">
+                Tipo de Meta
+              </label>
               <select
                 className="border rounded px-2 py-1 w-full"
                 value={tipoMeta}
@@ -257,7 +301,7 @@ export default function MetasCard() {
             </div>
             {tipoMeta === "Peso" && (
               <div className="mb-3">
-                <label className="block mb-1 font-semibold">
+                <label className="block mb-1 font-semibold" htmlFor="PesoDesejado">
                   Peso desejado (kg)
                 </label>
                 <input
@@ -271,7 +315,7 @@ export default function MetasCard() {
             )}
             {tipoMeta === "Percentual de gordura" && (
               <div className="mb-3">
-                <label className="block mb-1 font-semibold">
+                <label className="block mb-1 font-semibold" htmlFor="PercentualDesejado">
                   Percentual desejado (%)
                 </label>
                 <input

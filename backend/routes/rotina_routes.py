@@ -1,4 +1,3 @@
-# backend/routes/rotina_routes.py
 from flask import Blueprint, jsonify, request, g
 from utils.auth import require_auth
 from db import get_conn
@@ -6,6 +5,9 @@ from mysql.connector import IntegrityError
 import datetime
 
 rotinas_bp = Blueprint("rotinas", __name__, url_prefix="/rotinas")
+
+META_PADRAO = "MetaPadrão"
+ROTINA_NOT_FOUND = "Rotina não encontrada"
 
 @rotinas_bp.get("/")
 @require_auth
@@ -52,14 +54,11 @@ def criar_rotina():
     cur = conn.cursor()
 
     try:
-        # 1) Inserir Rotina (verifica se já existe)
-        # Rotina tem PK (nome, fEmail_usuarioCriador)
         cur.execute("""
                 INSERT INTO Rotina (nome, fEmail_usuarioCriador, publico)
                 VALUES (%s, %s, %s)
             """, (nome_rotina, email, publico_rotina))
 
-        # Limpar treinos ligados à rotina
         cur.execute("""
             DELETE FROM TreinoRotina
             WHERE fkNomeRotina = %s AND fkEmail_CriadorRotina = %s
@@ -70,18 +69,14 @@ def criar_rotina():
         cur.execute("""
             SELECT 1 FROM Metas 
             WHERE titulo = %s AND fk_emailUsuario = %s
-        """, ("MetaPadrão", email))
+        """, (META_PADRAO, email))
 
         existe = cur.fetchone()
         if not existe:
-            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo) VALUES (%s, %s, %s, %s, %s)",
-                        ("MetaPadrão", email, 3.14, "", "p"))
+            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                        (META_PADRAO, email, 3.14, "", "X",0))
 
 
-        
-        
-            
-        # 2) Para cada ficha: criar Treino (se necessário) e inserir TreinoRotina
         for ficha in fichas:
             nome_ficha = (ficha.get("nome") or "").strip()
             exercicios = ficha.get("exercicios", [])
@@ -99,24 +94,20 @@ def criar_rotina():
                 cur.execute("INSERT INTO Treino (nome, fEmail_usuarioCriador, publico) VALUES (%s, %s, %s)",
                             (nome_ficha, email, ficha_publico))
             else:
-                # se já existir, atualiza flag publico do treino conforme payload
                 cur.execute("UPDATE Treino SET publico = %s WHERE nome = %s AND fEmail_usuarioCriador = %s",
                             (ficha_publico, nome_ficha, email))
 
-            # inserir ligação TreinoRotina
             cur.execute("""
                 INSERT IGNORE INTO TreinoRotina (
                     fkEmail_CriadorTreino, fkNomeTreino, fkEmail_CriadorRotina, fkNomeRotina
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, nome_rotina))
-            
-            # limpar TreinoExercicio do treino
+
             cur.execute("""
                 DELETE FROM TreinoExercicio
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
 
-        
                
             #TABELA USUSARIO TREINO PLACEHOLDER MUDAR DEPOIS
         
@@ -139,13 +130,11 @@ def criar_rotina():
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
             
-            
-            # 3) Para cada exercício da ficha: garantir Exercicio e inserir TreinoExercicio
             for ex in exercicios:
                 nome_ex = ex.get("nome")
                 num_series = int(ex.get("series") or 0)
                 descricao = ex.get("descricao", "")
-                seriesData = ex.get("seriesData", [])
+                series_data = ex.get("seriesData", [])
 
                 if not nome_ex:
                     continue
@@ -166,7 +155,7 @@ def criar_rotina():
                 ))
 
                 # Inserir cada série
-                for idx, serie in enumerate(seriesData, start=1):
+                for idx, serie in enumerate(series_data, start=1):
                     
                     
                     carga_raw = serie.get("carga")
@@ -179,7 +168,7 @@ def criar_rotina():
                     repeticoes_raw = serie.get("repeticoes")
                     try:
                         repeticoes = int(repeticoes_raw) if repeticoes_raw not in (None, "", " ") else 0
-                    except:
+                    except Exception:
                         repeticoes = 0
 
                     # Detalhe
@@ -209,7 +198,7 @@ def criar_rotina():
                         email,
                         email,  # por enquanto o usuário do treino é o criador
                         placeholder_date,
-                        "MetaPadrão"  # título da meta padrão
+                        META_PADRAO  # título da meta padrão
                     ))
 
         conn.commit()
@@ -250,7 +239,7 @@ def obter_rotina(nome_rotina):
         rotina = cur.fetchone()
 
         if not rotina:
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # Buscar fichas da rotina (Treinos)
         cur.execute("""
@@ -344,7 +333,7 @@ def excluir_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 1) Buscar todas as fichas (treinos) dessa rotina
         cur.execute("""
@@ -448,7 +437,7 @@ def editar_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 2) Apagar vínculos antigos
         cur.execute("""
@@ -566,6 +555,16 @@ def editar_rotina(nome_rotina):
                     detalhe = serie.get("detalhe") or ""
 
                     cur.execute("""
+                        SELECT 1 FROM Metas 
+                        WHERE titulo = %s AND fk_emailUsuario = %s
+                    """, (META_PADRAO, email))
+
+                    existe = cur.fetchone()
+                    if not existe:
+                        cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                                    (META_PADRAO, email, 3.14, "", "X",0))
+
+                    cur.execute("""
                         INSERT INTO Serie (
                             numero, detalhe, repeticoes, carga,
                             fk_nomeExercicio, fkNomeTreino,
@@ -588,13 +587,14 @@ def editar_rotina(nome_rotina):
                         email,
                         email,
                         placeholder_date,
-                        "MetaPadrão"
+                        META_PADRAO
                     ))
 
         conn.commit()
 
     except Exception as e:
         conn.rollback()
+        print(e)
         return jsonify({"message": "Erro ao editar rotina", "detail": str(e)}), 500
     finally:
         cur.close()

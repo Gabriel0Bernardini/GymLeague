@@ -4,12 +4,14 @@ from db import get_conn
 from utils.auth import decode_token
 import jwt
 import os
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 ALGORITHM = "HS256"
+SQL_SELCECT_USER_BY_EMAIL = "SELECT * FROM Usuario WHERE email = %s"
+
 
 def generate_token(user_row):
     dataNascimento = user_row.get("dataNascimento")
@@ -28,8 +30,8 @@ def generate_token(user_row):
         "altura": user_row.get("altura"),
         "percentual_gordura": user_row.get("percentual_gordura"),
         "idade": idade,
-        "exp": datetime.utcnow() + timedelta(hours=8),
-        "iat": datetime.utcnow(),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+        "iat": datetime.now(timezone.utc),
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -38,7 +40,7 @@ def generate_token(user_row):
 @auth_bp.post("/login")
 def login():
     if not request.is_json:
-        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpoooo inválido"}), 400
 
     data = request.get_json()
     email = (data.get("email") or "").strip()
@@ -51,7 +53,7 @@ def login():
     cur = conn.cursor(dictionary=True)
 
     try:
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
     finally:
         cur.close()
@@ -67,14 +69,14 @@ def login():
 @auth_bp.post("/register")
 def register():
     if not request.is_json:
-        return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
+        return jsonify({"code": "BAD_REQUEST", "message": "Corpoooooooo inválido"}), 400
 
     data = request.get_json()
     email = (data.get("email") or "").strip()
-    pNome = (data.get("pNome") or "").strip()
+    p_Nome = (data.get("pNome") or "").strip()
     senha = data.get("senha") or ""
 
-    if not email or not pNome or not senha:
+    if not email or not p_Nome or not senha:
         return jsonify({"code": "BAD_REQUEST", "message": "Email, nome e senha são obrigatórios"}), 400
 
     conn = get_conn()
@@ -87,11 +89,11 @@ def register():
 
         cur.execute(
             "INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)",
-            (email, pNome, senha)
+            (email, p_Nome, senha)
         )
         conn.commit()
 
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
     except Exception:
         conn.rollback()
@@ -149,10 +151,10 @@ def update():
         conn.commit()
 
         # RECUPERAR DADOS COMPLETOS DO USUÁRIO
-        cur.execute("SELECT * FROM Usuario WHERE email = %s", (email,))
+        cur.execute(SQL_SELCECT_USER_BY_EMAIL, (email,))
         user = cur.fetchone()
 
-    except:
+    except Exception:
         conn.rollback()
         return jsonify({"code": "INTERNAL_ERROR", "message": "Erro ao atualizar usuário"}), 500
     finally:

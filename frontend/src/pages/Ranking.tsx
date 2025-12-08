@@ -10,15 +10,11 @@ import PercentualGCardEditavel from "../components/ranking/PercentualGCardEditav
 import MetasCard from "../components/ranking/MetasCard";
 import TodosMusculosCard from "../components/ranking/TodosMusculosCard";
 import Top3MusculosCard from "../components/ranking/Top3MusculosCard";
-import Input from "../components/ui/Input";
-import Button from "../components/ui/Button";
+import AlturaCardEditavel from "../components/ranking/AlturaCardEditavel";
 import Footer from "../components/ui/Footer";
-import GreetingsCard from "../components/home/GreetingsCard";
 
 import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
-import PrivateRoute from "../components/auth/PrivateRoute";
-import type { FeedbackState } from "./Cadastro";
 
 export default function Ranking() {
   const navigate = useNavigate();
@@ -61,6 +57,9 @@ export default function Ranking() {
           </div>
           <div className="flex-1">
             <PercentualGCardEditavel />
+          </div>
+          <div className="flex-1">
+            <AlturaCardEditavel />
           </div>
         </div>
       </div>

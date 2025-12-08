@@ -22,6 +22,7 @@ export type User = {
 export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [rankingGeral, setRankingGeral] = useState<string | null>(null);
 
   function handleLogout() {
     clearToken();
@@ -30,6 +31,16 @@ export default function Home() {
 
   useEffect(() => {
     api.auth.me().then((data) => setUser(data));
+    // buscar ranking geral
+    (async () => {
+      try {
+        const res = await api.home.ranking();
+        setRankingGeral(res?.rankingGeral ?? null);
+      } catch (err) {
+        // falha em ranking não bloqueia a página
+        setRankingGeral(null);
+      }
+    })();
   }, []);
 
   return (
@@ -48,7 +59,7 @@ export default function Home() {
         <div className="p-4">
           <div className="grid grid-cols-2 gap-6">
             <CardPesoAtual />
-            <CardRankingGeral />
+            <CardRankingGeral rankingGeral={rankingGeral ?? undefined} />
           </div>
         </div>
 

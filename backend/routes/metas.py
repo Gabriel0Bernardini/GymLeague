@@ -3,19 +3,23 @@ from db import get_conn
 
 metas_bp = Blueprint("metas", __name__, url_prefix="/metas")
 
+erro_msg = "Body JSON ausente"
+
 @metas_bp.post("/")
 def listar_metas():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     dados = request.get_json()
     if dados is None:
-        return jsonify({"erro": "Body JSON ausente"}), 400
+        return jsonify({"erro": erro_msg}), 400
     usuarioEmail = dados.get("usuarioEmail")
     if usuarioEmail is None:
         return jsonify({"erro": "usuarioEmail ausente"}), 400
     try:
-        SQL = "SELECT * FROM Metas WHERE fk_emailUsuario = %s"
-        cursor.execute(SQL, (usuarioEmail,))
+        SQL = """ 
+        SELECT * FROM Metas WHERE fk_emailUsuario = %s 
+        AND titulo <> %s"""
+        cursor.execute(SQL, (usuarioEmail, "MetaPadrão"))
         metas = cursor.fetchall() or []
         return jsonify(metas), 200
     except Exception as e:
@@ -35,7 +39,7 @@ def criar_meta():
     print("DEBUG /metas/criar body:", dados)  
 
     if dados is None:
-        return jsonify({"erro": "Body JSON ausente"}), 400
+        return jsonify({"erro": erro_msg}), 400
 
     usuarioEmail = dados.get("usuarioEmail")
     if usuarioEmail is None:
@@ -133,7 +137,7 @@ def editar_meta():
     cursor = conn.cursor(dictionary=True)
     dados = request.get_json()
     if dados is None:
-        return jsonify({"erro": "Body JSON ausente"}), 400
+        return jsonify({"erro": erro_msg}), 400
     
     usuarioEmail = dados.get("usuarioEmail")
     titulo = dados.get("titulo")
@@ -175,7 +179,7 @@ def deletar_meta():
     cursor = conn.cursor(dictionary=True)
     dados = request.get_json()
     if dados is None:
-        return jsonify({"erro": "Body JSON ausente"}), 400
+        return jsonify({"erro": erro_msg}), 400
     usuarioEmail = dados.get("usuarioEmail")
     titulo = dados.get("titulo")
     if None in (usuarioEmail, titulo):

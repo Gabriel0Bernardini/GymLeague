@@ -121,6 +121,17 @@ export default function InserirExercicio() {
         >
           <h2 className="text-2xl font-bold mb-4">Criar Exercício</h2>
 
+          {/* Aviso: exercícios não contabilizam ranking */}
+          <div className="mb-6 p-4 rounded bg-blue-50 border-l-4 border-blue-500">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">ℹ️</div>
+              <div className="text-sm text-blue-900">
+                <strong>Informação importante:</strong> exercícios criados momentaneamente não contabilizam para o ranking.
+                Após a implementação completa do sistema de ranking, todos os exercícios serão incluídos automaticamente.
+              </div>
+            </div>
+          </div>
+
           {/* Nome do exercício */}
           <div className="mb-4">
             <Input
