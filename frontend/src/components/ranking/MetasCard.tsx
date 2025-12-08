@@ -6,6 +6,7 @@ type Meta = {
   tipo: "Peso" | "Percentual de gordura";
   objetivo: number;
   atual: number;
+  inicial: number;   
   descricao?: string;
 };
 
@@ -37,6 +38,7 @@ export default function MetasCard() {
       tipo,
       objetivo: Math.round(Number(m.objetivo) || 0),
       atual,
+      inicial: Math.round(Number(m.valor_inicial) || 0),
       descricao: m.descricao || undefined,
     } as Meta;
   });
@@ -98,6 +100,7 @@ export default function MetasCard() {
         tipo,
         objetivo: Math.round(Number(m.objetivo) || 0),
         atual,
+        inicial: Math.round(Number(m.valor_inicial) || 0),
         descricao: m.descricao || undefined,
       } as Meta;
     });
@@ -189,10 +192,12 @@ export default function MetasCard() {
             let progresso = 0;
 
             if (objetivoNum > 0 && atualNum > 0) {
-              const menor = atualNum < objetivoNum;
-              progresso = menor
-                ? Math.min((atualNum / objetivoNum) * 100, 100)
-                : Math.min((objetivoNum / atualNum) * 100, 100);
+              const inicialNum = Number(meta.inicial);
+
+              if (inicialNum !== objetivoNum) {
+                progresso = ((inicialNum - atualNum) / (inicialNum - objetivoNum)) * 100;
+                progresso = Math.max(0, Math.min(progresso, 100)); 
+              }
             }
             return (
               <li key={idx} className="p-3 bg-gray-50 border rounded-lg">

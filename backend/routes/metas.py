@@ -16,8 +16,10 @@ def listar_metas():
     if usuarioEmail is None:
         return jsonify({"erro": "usuarioEmail ausente"}), 400
     try:
-        SQL = "SELECT * FROM Metas WHERE fk_emailUsuario = %s"
-        cursor.execute(SQL, (usuarioEmail,))
+        SQL = """ 
+        SELECT * FROM Metas WHERE fk_emailUsuario = %s 
+        AND titulo <> %s"""
+        cursor.execute(SQL, (usuarioEmail, "MetaPadrão"))
         metas = cursor.fetchall() or []
         return jsonify(metas), 200
     except Exception as e:
