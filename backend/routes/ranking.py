@@ -104,42 +104,38 @@ def buscar_todos():
         cursor.close()
         conn.close()
 
-def calcular_ranking_usuario(performance: float, referencia: float) -> str:
-    if referencia <= 0:
-        return "Plastico"
+def calcular_ranking_usuario(carga, repeticoes, dificuldade, peso_magro, peso_ideal):
+    if carga > 0:
+        performance = carga * repeticoes
+    else:
+        performance = repeticoes * 1.5  
 
-    pct = performance / referencia
-    pontos = int(pct * 180)
-
-    if pontos < 0:
-        pontos = 0
-    if pontos > 180:
-        pontos = 180
-
+    fator_peso = peso_magro / peso_ideal
+    fator_peso = max(0.6, min(1.4, fator_peso))
+    performance_real = performance * fator_peso * dificuldade
+    p = performance_real / (performance_real + 40)
+    pontos = int(p * 180)
     pontos = round(pontos / 10) * 10
 
     return ranks_por_pontos.get(pontos, "Plastico")
 
 def atualizar_ranking_musculo(conn, cursor, email, nome_exercicio, carga, repeticoes):
-    performance = carga * repeticoes
+
+    cursor.execute("SELECT dificuldade FROM Exercicio WHERE nome = %s", (nome_exercicio,))
+    row = cursor.fetchone()
+    dificuldade = row["dificuldade"] if row else 1.0
 
     cursor.execute("""
-        SELECT (carga * repeticoes) AS perf
-        FROM Serie
-        WHERE fEmail_UsuarioTreino = %s
-        AND fk_nomeExercicio = %s
-        ORDER BY fk_dataDoTreino DESC, numero DESC
-        LIMIT 5
-    """, (email, nome_exercicio))
-
-    rows = cursor.fetchall()
-
-    if not rows:
-        referencia = 50
-    else:
-        referencia = sum(r["perf"] for r in rows) / len(rows)
-
-    ranking_final = calcular_ranking_usuario(performance, referencia)
+                   SELECT peso, altura, percentual_gordura
+                   FROM Usuario 
+                   WHERE email = %s""", (email,))
+    row = cursor.fetchone()
+    peso = row["peso"]
+    altura = row["altura"]
+    percentual_gordura = row["percentual_gordura"]
+    peso_magro = peso * (1 - percentual_gordura)
+    peso_ideal = 23 * (altura / 100) ** 2
+    ranking_final = calcular_ranking_usuario(carga,repeticoes,dificuldade, peso_ideal, peso_magro)
 
     cursor.execute("""
         SELECT fk_nomeMusculo
@@ -187,8 +183,8 @@ def calcular_media_grupo(conn, cursor, email, nome_exercicio):
             grupos.add(grupo_row["fk_nomeGrupoMuscular"])
 
     resultados = {}
-    for grupo in grupos:
 
+    for grupo in grupos:
         cursor.execute("""
             SELECT RM.ranking
             FROM RankingMusculo RM
@@ -200,13 +196,23 @@ def calcular_media_grupo(conn, cursor, email, nome_exercicio):
         rows = cursor.fetchall()
 
         if not rows:
-            media = 0
+            ranking_final = "Plastico"
         else:
             pontos = [lista_ranks.get(r["ranking"], 0) for r in rows]
-            media = sum(pontos) / len(pontos)
+            pontos_aj = [p if p > 0 else 1 for p in pontos]
+            N = len(pontos_aj)
+            soma_inv = sum(1/p for p in pontos_aj)
+            media_h = N / soma_inv
+            pontos_sorted = sorted(pontos_aj, reverse=True)
 
-        media_arred = round(media / 10) * 10
-        ranking_final = ranks_por_pontos.get(media_arred, "Plastico")
+            if len(pontos_sorted) >= 2:
+                limite_superior = pontos_sorted[1]
+            else:
+                limite_superior = pontos_sorted[0]
+
+            media_h = min(media_h, limite_superior)
+            media_arred = round(media_h / 10) * 10
+            ranking_final = ranks_por_pontos.get(media_arred, "Plastico")
 
         cursor.execute("""
             INSERT INTO RankingGrupoMuscular (f_emailUsuario, f_nomeGrupo, ranking)
@@ -217,7 +223,6 @@ def calcular_media_grupo(conn, cursor, email, nome_exercicio):
         resultados[grupo] = ranking_final
 
     conn.commit()
-
     return resultados
 
 def atualizar_ranking_geral_usuario(conn, cursor, email):
