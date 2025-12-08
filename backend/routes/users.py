@@ -35,9 +35,9 @@ def create_user():
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
     data = request.get_json()
     email = (data.get("email") or "").strip()
-    pNome = (data.get("pNome") or "").strip()
+    p_nome = (data.get("pNome") or "").strip()
     senha = data.get("senha") or ""
-    if not email or not pNome or not senha:
+    if not email or not p_nome or not senha:
         return jsonify({"code": "BAD_REQUEST", "message": "email, pNome e senha obrigatórios"}), 400
 
     conn = get_conn()
@@ -46,7 +46,7 @@ def create_user():
         cur.execute("SELECT 1 FROM Usuario WHERE email = %s", (email,))
         if cur.fetchone():
             return jsonify({"code": "EMAIL_ALREADY_EXISTS", "message": "Email já cadastrado"}), 409
-        cur.execute("INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)", (email, pNome, senha))
+        cur.execute("INSERT INTO Usuario (email, pNome, senha) VALUES (%s, %s, %s)", (email, p_nome, senha))
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -54,35 +54,34 @@ def create_user():
     finally:
         cur.close()
         conn.close()
-    return jsonify({"email": email, "pNome": pNome}), 201
+    return jsonify({"email": email, "pNome": p_nome}), 201
 
 @users_bp.put("/me")
 @require_auth
 def update_me():
     """Atualiza dados do usuário autenticado (pNome, peso, altura, dataNascimento, percentual_gordura)."""
-    from flask import g
     if not request.is_json:
         return jsonify({"code": "BAD_REQUEST", "message": "Corpo inválido"}), 400
     data = request.get_json()
-    pNome = data.get("pNome")
+    p_nome = data.get("pNome")
     peso = data.get("peso")
     altura = data.get("altura")
     percentual = data.get("percentual_gordura")
-    dataNascimento = data.get("dataNascimento")  # espere YYYY-MM-DD ou null
+    data_nascimento = data.get("dataNascimento")  # espere YYYY-MM-DD ou null
 
     # montar UPDATE dinamicamente
     set_clauses = []
     params = []
-    if pNome is not None:
-        set_clauses.append("pNome=%s"); params.append(pNome)
+    if p_nome is not None:
+        set_clauses.append("pNome=%s"); params.append(p_nome)
     if peso is not None:
         set_clauses.append("peso=%s"); params.append(peso)
     if altura is not None:
         set_clauses.append("altura=%s"); params.append(altura)
     if percentual is not None:
         set_clauses.append("percentual_gordura=%s"); params.append(percentual)
-    if dataNascimento is not None:
-        set_clauses.append("dataNascimento=%s"); params.append(dataNascimento)
+    if data_nascimento is not None:
+        set_clauses.append("dataNascimento=%s"); params.append(data_nascimento)
     if not set_clauses:
         return jsonify({"code": "BAD_REQUEST", "message": "Nada para atualizar"}), 400
 
@@ -105,7 +104,6 @@ def update_me():
 @users_bp.delete("/me")
 @require_auth
 def delete_me():
-    from flask import g
     conn = get_conn()
     cur = conn.cursor()
     try:
