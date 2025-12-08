@@ -242,7 +242,9 @@ export default function MetasCard() {
               {editIdx === null ? "Adicionar Meta" : "Editar Meta"}
             </h3>
             <div className="mb-3">
-              <label className="block mb-1 font-semibold">Tipo de Meta</label>
+              <label className="block mb-1 font-semibold" htmlFor="tipoMeta">
+                Tipo de Meta
+              </label>
               <select
                 className="border rounded px-2 py-1 w-full"
                 value={tipoMeta}
@@ -257,7 +259,7 @@ export default function MetasCard() {
             </div>
             {tipoMeta === "Peso" && (
               <div className="mb-3">
-                <label className="block mb-1 font-semibold">
+                <label className="block mb-1 font-semibold" htmlFor="PesoDesejado">
                   Peso desejado (kg)
                 </label>
                 <input
@@ -271,7 +273,7 @@ export default function MetasCard() {
             )}
             {tipoMeta === "Percentual de gordura" && (
               <div className="mb-3">
-                <label className="block mb-1 font-semibold">
+                <label className="block mb-1 font-semibold" htmlFor="PercentualDesejado">
                   Percentual desejado (%)
                 </label>
                 <input
