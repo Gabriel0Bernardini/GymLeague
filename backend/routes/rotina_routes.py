@@ -1,4 +1,3 @@
-# backend/routes/rotina_routes.py
 from flask import Blueprint, jsonify, request, g
 from utils.auth import require_auth
 from db import get_conn
@@ -7,6 +6,9 @@ import datetime
 
 rotinas_bp = Blueprint("rotinas", __name__, url_prefix="/rotinas")
 
+META_PADRAO = "MetaPadrão"
+ROTINA_NOT_FOUND = "Rotina não encontrada"
+
 @rotinas_bp.get("/")
 @require_auth
 def listar_rotinas():
@@ -14,7 +16,7 @@ def listar_rotinas():
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
     cur.execute("""
-        SELECT nome
+        SELECT nome, publico
         FROM Rotina
         WHERE fEmail_usuarioCriador = %s
     """, (email,))
@@ -24,7 +26,7 @@ def listar_rotinas():
 
     resultados = []
     for i, r in enumerate(rotinas):
-        resultados.append({"id": i + 1, "nome": r["nome"]})
+        resultados.append({"id": i + 1, "nome": r["nome"], "publico": bool(r.get("publico", False))})
     return jsonify(resultados), 200
 
 
@@ -38,7 +40,10 @@ def criar_rotina():
     payload = request.get_json()
     nome_rotina = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
-    data_atual = datetime.date.today()
+    publico_rotina = bool(payload.get("publico", False))
+    # usamos uma data placeholder para treinos criados por rotinas
+    # isso evita depender da data do PC; usamos o máximo permitido pelo MySQL (9999-12-31)
+    placeholder_date = datetime.date.max
     
     if not nome_rotina:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
@@ -49,15 +54,11 @@ def criar_rotina():
     cur = conn.cursor()
 
     try:
-        # 1) Inserir Rotina (verifica se já existe)
-        # Rotina tem PK (nome, fEmail_usuarioCriador)
         cur.execute("""
-                INSERT INTO Rotina (nome, fEmail_usuarioCriador)
-                VALUES (%s, %s)
-                ON DUPLICATE KEY UPDATE nome = nome
-            """, (nome_rotina, email))
+                INSERT INTO Rotina (nome, fEmail_usuarioCriador, publico)
+                VALUES (%s, %s, %s)
+            """, (nome_rotina, email, publico_rotina))
 
-        # Limpar treinos ligados à rotina
         cur.execute("""
             DELETE FROM TreinoRotina
             WHERE fkNomeRotina = %s AND fkEmail_CriadorRotina = %s
@@ -68,18 +69,14 @@ def criar_rotina():
         cur.execute("""
             SELECT 1 FROM Metas 
             WHERE titulo = %s AND fk_emailUsuario = %s
-        """, ("MetaPadrão", email))
+        """, (META_PADRAO, email))
 
         existe = cur.fetchone()
         if not existe:
-            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo) VALUES (%s, %s, %s, %s, %s)",
-                        ("MetaPadrão", email, 3.14, "", "p"))
+            cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                        (META_PADRAO, email, 3.14, "", "X",0))
 
 
-        
-        
-            
-        # 2) Para cada ficha: criar Treino (se necessário) e inserir TreinoRotina
         for ficha in fichas:
             nome_ficha = (ficha.get("nome") or "").strip()
             exercicios = ficha.get("exercicios", [])
@@ -91,39 +88,40 @@ def criar_rotina():
                 raise ValueError("Cada ficha precisa ter um nome")
 
             # criar Treino (chave PK: nome, fEmail_usuarioCriador)
+            ficha_publico = bool(ficha.get("publico", False))
             cur.execute("SELECT 1 FROM Treino WHERE nome = %s AND fEmail_usuarioCriador = %s", (nome_ficha, email))
             if not cur.fetchone():
                 cur.execute("INSERT INTO Treino (nome, fEmail_usuarioCriador, publico) VALUES (%s, %s, %s)",
-                            (nome_ficha, email, False))
+                            (nome_ficha, email, ficha_publico))
+            else:
+                cur.execute("UPDATE Treino SET publico = %s WHERE nome = %s AND fEmail_usuarioCriador = %s",
+                            (ficha_publico, nome_ficha, email))
 
-            # inserir ligação TreinoRotina
             cur.execute("""
                 INSERT IGNORE INTO TreinoRotina (
                     fkEmail_CriadorTreino, fkNomeTreino, fkEmail_CriadorRotina, fkNomeRotina
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, nome_rotina))
-            
-            # limpar TreinoExercicio do treino
+
             cur.execute("""
                 DELETE FROM TreinoExercicio
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
 
-        
                
             #TABELA USUSARIO TREINO PLACEHOLDER MUDAR DEPOIS
         
             cur.execute("""
-                SELECT 1 FROM UsuarioTreino
-                WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
-            """, (email, nome_ficha, data_atual))
+                    SELECT 1 FROM UsuarioTreino
+                    WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
+                """, (email, nome_ficha, placeholder_date))
             existe_ut = cur.fetchone()
             
             if not existe_ut:
                 cur.execute("""
                     INSERT INTO UsuarioTreino (fkEmail_CriadorTreino,fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
                     VALUES (%s, %s, %s, %s)
-                """, (email, email, nome_ficha, data_atual))
+                """, (email, email, nome_ficha, placeholder_date))
             
             
             # limpar Series do treino também
@@ -132,13 +130,11 @@ def criar_rotina():
                 WHERE fkEmail_CriadorTreino = %s AND fkNomeTreino = %s
             """, (email, nome_ficha))
             
-            
-            # 3) Para cada exercício da ficha: garantir Exercicio e inserir TreinoExercicio
             for ex in exercicios:
                 nome_ex = ex.get("nome")
                 num_series = int(ex.get("series") or 0)
                 descricao = ex.get("descricao", "")
-                seriesData = ex.get("seriesData", [])
+                series_data = ex.get("seriesData", [])
 
                 if not nome_ex:
                     continue
@@ -159,7 +155,7 @@ def criar_rotina():
                 ))
 
                 # Inserir cada série
-                for idx, serie in enumerate(seriesData, start=1):
+                for idx, serie in enumerate(series_data, start=1):
                     
                     
                     carga_raw = serie.get("carga")
@@ -172,7 +168,7 @@ def criar_rotina():
                     repeticoes_raw = serie.get("repeticoes")
                     try:
                         repeticoes = int(repeticoes_raw) if repeticoes_raw not in (None, "", " ") else 0
-                    except:
+                    except Exception:
                         repeticoes = 0
 
                     # Detalhe
@@ -201,9 +197,8 @@ def criar_rotina():
                         nome_ficha,
                         email,
                         email,  # por enquanto o usuário do treino é o criador
-                        data_atual,
-                        "MetaPadrão"  # título da meta padrão
-                        
+                        placeholder_date,
+                        META_PADRAO  # título da meta padrão
                     ))
 
         conn.commit()
@@ -237,29 +232,30 @@ def obter_rotina(nome_rotina):
     try:
         # Buscar rotina
         cur.execute("""
-            SELECT nome 
+            SELECT nome, publico 
             FROM Rotina
             WHERE nome = %s AND fEmail_usuarioCriador = %s
         """, (nome_rotina, email))
         rotina = cur.fetchone()
 
         if not rotina:
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # Buscar fichas da rotina (Treinos)
         cur.execute("""
-            SELECT t.nome
-            FROM Treino t
-            JOIN TreinoRotina tr
-              ON tr.fkNomeTreino = t.nome
-             AND tr.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
-            WHERE tr.fkEmail_CriadorRotina = %s
-              AND tr.fkNomeRotina = %s
+                SELECT t.nome, t.publico
+                FROM Treino t
+                JOIN TreinoRotina tr
+                    ON tr.fkNomeTreino = t.nome
+                    AND tr.fkEmail_CriadorTreino = t.fEmail_usuarioCriador
+                WHERE tr.fkEmail_CriadorRotina = %s
+                    AND tr.fkNomeRotina = %s
         """, (email, nome_rotina))
         fichas = cur.fetchall()
 
         resultado = {
             "nome": rotina["nome"],
+            "publico": bool(rotina.get("publico", False)),
             "fichas": []
         }
 
@@ -305,6 +301,7 @@ def obter_rotina(nome_rotina):
 
             resultado["fichas"].append({
                 "nome": nome_ficha,
+                "publico": bool(f.get("publico", False)) if isinstance(f, dict) else False,
                 "exercicios": [
                     {
                         **ex,
@@ -336,7 +333,7 @@ def excluir_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 1) Buscar todas as fichas (treinos) dessa rotina
         cur.execute("""
@@ -358,11 +355,38 @@ def excluir_rotina(nome_rotina):
 
         # 3) Para cada ficha, apagar exercícios da ficha
         for nome_ficha, _ in fichas:
+            # apagar exercícios ligados ao treino
             cur.execute("""
                 DELETE FROM TreinoExercicio
                 WHERE fkNomeTreino = %s
                   AND fkEmail_CriadorTreino = %s
             """, (nome_ficha, email))
+
+            # apagar séries ligadas ao treino
+            cur.execute("""
+                DELETE FROM Serie
+                WHERE fkNomeTreino = %s
+                  AND fkEmail_CriadorTreino = %s
+            """, (nome_ficha, email))
+
+            # Se o treino não está mais vinculado a nenhuma rotina, apagar o próprio Treino
+            cur.execute("""
+                SELECT 1 FROM TreinoRotina
+                WHERE fkNomeTreino = %s AND fkEmail_CriadorTreino = %s
+                LIMIT 1
+            """, (nome_ficha, email))
+            if not cur.fetchone():
+                # apagar entradas de usuário/treino relacionadas (histórico)
+                cur.execute("""
+                    DELETE FROM UsuarioTreino
+                    WHERE fkNomeTreino = %s AND fkEmail_CriadorTreino = %s
+                """, (nome_ficha, email))
+
+                # finalmente apagar o Treino
+                cur.execute("""
+                    DELETE FROM Treino
+                    WHERE nome = %s AND fEmail_usuarioCriador = %s
+                """, (nome_ficha, email))
 
         # 4) Remover a própria rotina
         cur.execute("""
@@ -393,7 +417,9 @@ def editar_rotina(nome_rotina):
     payload = request.get_json()
     novo_nome = (payload.get("nome") or "").strip()
     fichas = payload.get("fichas") or []
-    data_atual = datetime.date.today()
+    publico_rotina = bool(payload.get("publico", False))
+    # use placeholder date instead of current PC date
+    placeholder_date = datetime.date.max
 
     if not novo_nome:
         return jsonify({"code": "BAD_REQUEST", "message": "Nome da rotina é obrigatório"}), 400
@@ -411,7 +437,7 @@ def editar_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         if not cur.fetchone():
-            return jsonify({"message": "Rotina não encontrada"}), 404
+            return jsonify({"message": ROTINA_NOT_FOUND}), 404
 
         # 2) Apagar vínculos antigos
         cur.execute("""
@@ -442,9 +468,16 @@ def editar_rotina(nome_rotina):
         if novo_nome != nome_rotina:
             cur.execute("""
                 UPDATE Rotina
-                SET nome = %s
+                SET nome = %s, publico = %s
                 WHERE nome = %s AND fEmail_usuarioCriador = %s
-            """, (novo_nome, nome_rotina, email))
+            """, (novo_nome, publico_rotina, nome_rotina, email))
+        else:
+            # Atualiza apenas o campo publico se o nome não mudou
+            cur.execute("""
+                UPDATE Rotina
+                SET publico = %s
+                WHERE nome = %s AND fEmail_usuarioCriador = %s
+            """, (publico_rotina, nome_rotina, email))
 
         # 4) Reinsere tudo novamente (mesma lógica da criação)
         for ficha in fichas:
@@ -452,6 +485,8 @@ def editar_rotina(nome_rotina):
             if not nome_ficha:
                 raise ValueError("Ficha sem nome")
 
+            ficha_publico = bool(ficha.get("publico", False))
+            
             cur.execute("""
                 SELECT 1 FROM Treino 
                 WHERE nome = %s AND fEmail_usuarioCriador = %s
@@ -460,7 +495,11 @@ def editar_rotina(nome_rotina):
                 cur.execute("""
                     INSERT INTO Treino (nome, fEmail_usuarioCriador, publico)
                     VALUES (%s, %s, %s)
-                """, (nome_ficha, email, False))
+                """, (nome_ficha, email, ficha_publico))
+            else:
+                # se já existir, garantir que a flag publico siga o payload
+                cur.execute("UPDATE Treino SET publico = %s WHERE nome = %s AND fEmail_usuarioCriador = %s",
+                            (ficha_publico, nome_ficha, email))
 
             # Treino ↔ Rotina
             cur.execute("""
@@ -469,16 +508,16 @@ def editar_rotina(nome_rotina):
                 ) VALUES (%s, %s, %s, %s)
             """, (email, nome_ficha, email, novo_nome))
 
-            # garantir usuário/treino na data para FK de Série
+            # garantir usuário/treino com data placeholder para FK de Série
             cur.execute("""
                 SELECT 1 FROM UsuarioTreino
                 WHERE fEmail_UsuarioTreino = %s AND fkNomeTreino = %s AND dataDoTreino = %s
-            """, (email, nome_ficha, data_atual))
+            """, (email, nome_ficha, placeholder_date))
             if not cur.fetchone():
                 cur.execute("""
                     INSERT INTO UsuarioTreino (fkEmail_CriadorTreino, fEmail_UsuarioTreino, fkNomeTreino, dataDoTreino)
                     VALUES (%s, %s, %s, %s)
-                """, (email, email, nome_ficha, data_atual))
+                """, (email, email, nome_ficha, placeholder_date))
 
             # Exercícios
             for ex in ficha.get("exercicios", []):
@@ -516,6 +555,16 @@ def editar_rotina(nome_rotina):
                     detalhe = serie.get("detalhe") or ""
 
                     cur.execute("""
+                        SELECT 1 FROM Metas 
+                        WHERE titulo = %s AND fk_emailUsuario = %s
+                    """, (META_PADRAO, email))
+
+                    existe = cur.fetchone()
+                    if not existe:
+                        cur.execute("INSERT INTO Metas (titulo, fk_emailUsuario, objetivo, descricao, tipo, valor_inicial) VALUES (%s, %s, %s, %s, %s,%s)",
+                                    (META_PADRAO, email, 3.14, "", "X",0))
+
+                    cur.execute("""
                         INSERT INTO Serie (
                             numero, detalhe, repeticoes, carga,
                             fk_nomeExercicio, fkNomeTreino,
@@ -537,14 +586,15 @@ def editar_rotina(nome_rotina):
                         nome_ficha,
                         email,
                         email,
-                        data_atual,
-                        "MetaPadrão"
+                        placeholder_date,
+                        META_PADRAO
                     ))
 
         conn.commit()
 
     except Exception as e:
         conn.rollback()
+        print(e)
         return jsonify({"message": "Erro ao editar rotina", "detail": str(e)}), 500
     finally:
         cur.close()

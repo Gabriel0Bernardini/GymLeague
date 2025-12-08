@@ -1,53 +1,133 @@
+import React, { useEffect, useState } from "react";
+import { api } from "../../libs/api";
 
-export type MetaAtualProps = {
-  pesoDesejado?: number;    
-  dataLimite?: string;      
-  percentual?: number;      
-  fichaAtual?: string;       
-  proximoTreino?: string;    
+type MetaResp = {
+  meta?: {
+    titulo?: string;
+    objetivo?: number;
+    tipo?: string;
+    valorInicial?: number | null;
+  };
+  usuario?: {
+    peso?: number;
+    percentual_gordura?: number;
+  };
+  percentComplete?: number;
+  valorAtual?: number;
+  message?: string;
 };
 
-export default function MetaAtualCard({
-  pesoDesejado = 75,           // placeholder default
-  dataLimite = "30 de Outubro",   // placeholder default
-  percentual = 45,                 // placeholder default (45%)
-  fichaAtual = "A - Hipertrofia", // placeholder default
-  proximoTreino = "Treino B - Costas e Bíceps", // placeholder
-}: MetaAtualProps) {
-  // garante que a largura da barra fique entre 0 e 100
-  const pct = Math.max(0, Math.min(100, Math.round(percentual)));
+export default function MetaAtualCard() {
+  const [data, setData] = useState<MetaResp | null>(null);
+  const [ultimo, setUltimo] = useState<{
+    dataDoTreino?: string;
+    nomeDoTreino?: string;
+    nomeDaRotina?: string | null;
+    proximosTreinos?: string[];
+    message?: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+
+        const [metaResResult, ultimoResult] = await Promise.allSettled([
+          api.home.metas(),
+          api.home.ultimoTreino(),
+        ]);
+
+        if (!mounted) return;
+
+        if (metaResResult.status === "fulfilled") {
+          setData(metaResResult.value);
+        } else {
+          // fatal for meta card
+          setError((metaResResult.reason && metaResResult.reason.message) || "Erro ao carregar meta.");
+        }
+
+        if (ultimoResult.status === "fulfilled") {
+          setUltimo(ultimoResult.value);
+        } else {
+          // non-fatal: set null (no last treino)
+          setUltimo(null);
+        }
+      } catch (err: any) {
+        setError(err?.message || "Erro ao carregar meta.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) {
     return (
+      <div className="p-4">
+        <div className="bg-blue-500 shadow-md rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-2">Meta Atual</h2>
+          <p className="text-white">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data || data.message) {
+    return (
+      <div className="p-4">
+        <div className="bg-blue-500 shadow-md rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-2">Meta Atual</h2>
+          <p className="text-white">{error ?? data?.message ?? "Nenhuma meta encontrada."}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const meta = data.meta ?? {};
+  const percent = Math.max(0, Math.min(100, Math.round((data.percentComplete ?? 0) as number)));
+  const objetivo = meta.objetivo ?? 0;
+  const tipo = (meta.tipo ?? "P").toUpperCase();
+  const unidade = tipo === "G" ? "%" : "kg";
+  const valorAtual = data.valorAtual ?? (tipo === "G" ? data.usuario?.percentual_gordura : data.usuario?.peso);
+
+  return (
     <div className="p-4">
       <div className="bg-blue-500 shadow-md rounded-lg p-6 grid grid-cols-2 gap-6">
-
         <div>
           <h2 className="text-xl font-bold mb-2">Meta Atual</h2>
 
           <p className="text-white text-base">
-            Peso desejado: <strong>{pesoDesejado}kg</strong>
-            {/* TODO: substituir pesoDesejado por valor vindo do banco → user.metaPeso */}
+            <span className="opacity-90">{meta.titulo ?? "Meta"}</span>
           </p>
 
-          <p className="text-white text-base mt-1">
-            Final do mês: <strong>{dataLimite}</strong>
-            {/* TODO: substituir dataLimite pela data real → meta.dataLimite */}
+          <p className="text-white text-base mt-2">
+            Objetivo: <strong>{Number(objetivo).toFixed(2)}{unidade}</strong>
           </p>
 
           <div className="mt-4">
             <div className="w-full bg-gray-600 rounded-full h-4">
               <div
                 className="bg-white h-4 rounded-full"
-                style={{ width: `${pct}%` }}  
-                // TODO: substituir percentual pelo cálculo real:
-                // (progressoAtual / metaTotal) * 100 
+                style={{ width: `${percent}%` }}
               />
             </div>
 
             <p className="text-white text-sm mt-1">
-              Progresso: <strong>{pct}%</strong>
-              {/* TODO: substituir pct pela % vinda do backend */}
+              Progresso: <strong>{percent}%</strong>
             </p>
+
+            <p className="text-white text-sm mt-1 opacity-90">
+              Atual: <strong>{valorAtual !== undefined && valorAtual !== null ? Number(valorAtual).toFixed(2) : "-"}{unidade}</strong>
+            </p>
+
+            {meta.valorInicial !== null && meta.valorInicial !== undefined && (
+              <p className="text-white text-xs mt-1 opacity-70">Iniciado em: {Number(meta.valorInicial).toFixed(2)}{unidade}</p>
+            )}
           </div>
         </div>
 
@@ -55,13 +135,26 @@ export default function MetaAtualCard({
           <h2 className="text-xl font-bold mb-2">Treino</h2>
 
           <p className="text-white text-base">
-            Ficha atual: <strong>{fichaAtual}</strong>
-            {/* TODO: substituir fichaAtual pelo treino atual → treinoAtual.nome */}
+            Último treino: <strong>{ultimo?.nomeDoTreino ?? "-"}</strong>
+          </p>
+
+          <p className="text-white text-sm opacity-90 mt-1">
+            Data: <strong>{ultimo?.dataDoTreino ? new Date(ultimo.dataDoTreino).toLocaleDateString() : "-"}</strong>
+          </p>
+
+          <p className="text-white text-base mt-2">
+            Rotina: <strong>{ultimo?.nomeDaRotina ?? "-"}</strong>
           </p>
 
           <p className="text-white text-base mt-1">
-            Próximo treino: <strong>{proximoTreino}</strong>
-            {/* TODO: substituir proximoTreino pelo próximo treino da semana → treino.proximo */}
+            Próximos treinos da rotina:
+            <strong className="block mt-1">
+              {ultimo?.proximosTreinos && ultimo.proximosTreinos.length > 0 ? (
+                ultimo.proximosTreinos.join(", ")
+              ) : (
+                "-"
+              )}
+            </strong>
           </p>
         </div>
       </div>

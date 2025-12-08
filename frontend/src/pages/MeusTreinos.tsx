@@ -1,6 +1,6 @@
 // src/pages/MeusTreinos.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { clearToken } from "../libs/auth";
 import { api } from "../libs/api";
 
@@ -13,14 +13,11 @@ import Footer from "../components/ui/Footer";
 import PrivateRoute from "../components/auth/PrivateRoute";
 import ListaDeFichas from "../components/treinos/ListaDeFichas";
 import ModalProgramaTreino from "../components/treinos/ModalProgramaTreino";
-
-export type User = {
-  pNome: string;
-  email: string;
-};
+import type { User } from "./Home";
 
 export default function MeusTreinos() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
 
   const [modalAberto, setModalAberto] = useState(false);
@@ -48,6 +45,28 @@ export default function MeusTreinos() {
         navigate("/", { replace: true });
       });
   }, []);
+
+  // Abrir rotina se vier via navigation state (ex: botão na home)
+  useEffect(() => {
+    const state: any = (location && (location as any).state) || {};
+    const abrirNome: string | undefined = state?.abrirRotinaNome;
+    if (abrirNome) {
+      (async () => {
+        try {
+          const dados = await (api.rotinas as any).obter?.(abrirNome);
+          if (dados) {
+            setRotinaSelecionada(dados);
+            setModalAberto(true);
+            // limpar state da rota para não reabrir ao navegar
+            navigate(location.pathname, { replace: true, state: null });
+          }
+        } catch (err) {
+          console.error("Erro ao carregar rotina via state:", err);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location?.state]);
 
   async function handleAbrir(id: number) {
     const ficha = fichas.find((f) => f.id === id);
@@ -113,11 +132,12 @@ export default function MeusTreinos() {
           aberto={modalAberto}
           dados={rotinaSelecionada}
           onClose={() => setModalAberto(false)}
-          onSalvar={async ({ nomePrograma, fichas: fichasDoPrograma }) => {
+          onSalvar={async ({ nomePrograma, fichas: fichasDoPrograma, publico }) => {
             try {
-              const payload = {
+              const payload: any = {
                 nome: nomePrograma,
-                fichas: fichasDoPrograma
+                fichas: fichasDoPrograma,
+                publico: !!publico,
               };
 
               if (rotinaSelecionada) {

@@ -6,9 +6,7 @@ import CardMetaAtual from "../components/home/MetaAtualCard";
 import CardPesoAtual from "../components/home/PesoAtualCard";
 import CardRankingGeral from "../components/home/RankingGeralCard";
 import FichasPersonalizadasCard from "../components/home/cardsPaginas/FichasPersonalizadasCard";
-import MinhaEvolucaoCard from "../components/home/cardsPaginas/MinhaEvolucaoCard";
 import MinhasFichasCard from "../components/home/cardsPaginas/MinhasFichasCard";
-import RelatorioCard from "../components/home/cardsPaginas/RelatorioCard";
 import Footer from "../components/ui/Footer";
 import GreetingsCard from "../components/home/GreetingsCard";
 
@@ -24,6 +22,7 @@ export type User = {
 export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [rankingGeral, setRankingGeral] = useState<string | null>(null);
 
   function handleLogout() {
     clearToken();
@@ -32,6 +31,16 @@ export default function Home() {
 
   useEffect(() => {
     api.auth.me().then((data) => setUser(data));
+    // buscar ranking geral
+    (async () => {
+      try {
+        const res = await api.home.ranking();
+        setRankingGeral(res?.rankingGeral ?? null);
+      } catch (err) {
+        // falha em ranking não bloqueia a página
+        setRankingGeral(null);
+      }
+    })();
   }, []);
 
   return (
@@ -50,15 +59,13 @@ export default function Home() {
         <div className="p-4">
           <div className="grid grid-cols-2 gap-6">
             <CardPesoAtual />
-            <CardRankingGeral />
+            <CardRankingGeral rankingGeral={rankingGeral ?? undefined} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <div className="grid md:grid-cols-2 gap-4 p-4">
           <MinhasFichasCard />
-          <MinhaEvolucaoCard />
           <FichasPersonalizadasCard />
-          <RelatorioCard />
         </div>
 
         <Footer />

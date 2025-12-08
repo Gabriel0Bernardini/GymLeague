@@ -48,7 +48,6 @@ async function request<T>(
 }
 
 
-
 export const api = {
   auth: {
     login: (payload: import("../type/dto").LoginRequestDTO) =>
@@ -73,6 +72,19 @@ export const api = {
       request<{ email: string; pNome: string }>("/auth/me", {
         auth: true,
       }),
+  },
+
+  users: {
+    get: (email: string) =>
+      request<{
+        email: string;
+        pNome: string;
+        dataNascimento: string | null;
+        peso: number | null;
+        altura: number | null;
+        percentual_gordura: number | null;
+        ranking_geral: string | null;
+      }>(`/users/${email}`, { auth: true }),
   },
 
   explorarRotinas: {
@@ -117,6 +129,49 @@ export const api = {
     
   },
 
+  metas: {
+    listar: (usuarioEmail: string) =>
+      request<any[]>("/metas/", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail }),
+      }),
+
+    criar: (payload: {
+      usuarioEmail: string;
+      titulo: string;
+      descricao: string;
+      valorMeta: number;
+      tipoMeta: string;
+    }) =>
+      request("/metas/criar", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),
+
+    editar: (payload: {
+      usuarioEmail: string;
+      titulo: string;
+      valorMeta: number;
+      valorInicial: number;
+      descricao?: string | null;
+      tipoMeta?: string | null;
+    }) =>
+      request<{ mensagem: string }>("/metas/editar", {
+        method: "PUT",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),
+
+    excluir: (payload: { usuarioEmail: string; titulo: string; valorInicial: number }) =>
+      request<{ mensagem: string }>("/metas/deletar", {
+        method: "DELETE",
+        auth: true,
+        body: JSON.stringify(payload),
+      }),
+  },
+
   exercicios: {
     listar: () => request("/exercicios/", { auth: true }),
   },
@@ -129,7 +184,52 @@ export const api = {
     listarPorGrupo: (grupo: string) =>
       request(`/musculos/${grupo}`, { auth: true }),
   },
+
+  ranking: {
+    top3: (usuarioEmail: string) =>
+        request<{ musculo: string; ranking: string; pontuacao: number }[] >(
+            "/ranking/top3",
+            {
+                method: "POST",
+                auth: true,
+                body: JSON.stringify({ usuarioEmail })
+            }
+        ),
+
+    todos: (usuarioEmail: string) =>
+      request<{
+        grupos: Record<string, { 
+          rankingGrupo: string;
+          musculos: { musculo: string; ranking: string }[]
+        }>
+      }>("/ranking/todos", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({ usuarioEmail })
+      }),
+  },
   
+  editar: {
+    peso: (usuarioEmail: string, peso: number) =>
+      request<{ mensagem: string }>("/editar/peso", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, peso }),
+      }),
+    percentualGordura: (usuarioEmail: string, percentual_gordura: number) =>
+      request<{ mensagem: string }>("/editar/percentual_gordura", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, percentual_gordura }),
+      }),
+    altura: (usuarioEmail: string, altura: number) =>
+      request<{ mensagem: string }>("/editar/altura", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({ usuarioEmail, altura }),
+      }),
+  },
+
   inserirExercicio: {
     carregarDados: () =>
       request<{
@@ -143,5 +243,109 @@ export const api = {
       auth: true,
       body: JSON.stringify(payload),
     }),
+  },
+  treinar: {
+    getTreinosDaRotina: (emailCriador: string, nomeRotina: string) =>
+      request<any>(`/treinar/rotina/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeRotina)}`, { auth: true }),
+
+    iniciar: (payload: { nome_treino: string; email_criador_treino: string }) =>
+      request<any>(`/treinar/iniciar`, { method: "POST", auth: true, body: JSON.stringify(payload) }),
+
+    getExercicios: (emailCriador: string, nomeTreino: string) =>
+      request<any>(`/treinar/exercicios/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeTreino)}`, { auth: true }),
+
+    getSeries: (emailCriador: string, nomeTreino: string) =>
+      request<any>(`/treinar/series/${encodeURIComponent(emailCriador)}/${encodeURIComponent(nomeTreino)}`, { auth: true }),
+
+    inserirSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "POST", auth: true, body: JSON.stringify(payload) }),
+
+    atualizarSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "PUT", auth: true, body: JSON.stringify(payload) }),
+
+    deletarSerie: (payload: any) =>
+      request<any>(`/treinar/serie`, { method: "DELETE", auth: true, body: JSON.stringify(payload) }),
+  },
+  evolucao: {
+    pesoCorporal: () =>
+      request<{ pesagens: { peso: number; dataPesagem: string }[] }>(
+        "/evolucao/pesoCorporal",
+        { auth: true }
+      ),
+
+    percentualGordura: () =>
+      request<{ gordura: { percentual_gordura: number; dataPesagem: string }[] }>(
+        "/evolucao/percentualGordura",
+        { auth: true }
+      ),
+
+    treinoCompletoData: () =>
+      request<{
+        nomeTreino: string;
+        nomeRotina: string | null;
+        dataDoTreino: string;
+        exercicios: {
+          nome: string;
+          numeroSeries: number;
+          series: {
+            numero: number;
+            detalhe: string;
+            repeticoes: number;
+            carga: number;
+          }[];
+        }[];
+      }[]>("/evolucao/treinoCompletoData", { auth: true }),
+
+    exerciciosRealizados: () =>
+      request<{
+        exercicios: { nome: string; ultimaData: string | null }[];
+      }>("/evolucao/exerciciosRealizados", { auth: true }),
+
+    evolucaoExercicio: (nomeExercicio: string) =>
+      request<{
+        exercicio: string;
+        evolucao: {
+          data: string;
+          nomeTreino: string;
+          pesoMaximo: number;
+          repeticoes: number[];
+        }[];
+      }>(`/evolucao/evolucaoExercicio/${encodeURIComponent(nomeExercicio)}`, {
+        auth: true,
+      }),
+  },  
+  home: {
+    pesoPercentual: () =>
+      request<{ peso: number | null; percentual_gordura: number | null }>(
+        "/peso_percentual",
+        { auth: true }
+      ),
+
+    ranking: () => request<{ rankingGeral?: string }>("/ranking", { auth: true }),
+
+    metas: () =>
+      request<{
+        meta?: {
+          titulo?: string;
+          objetivo?: number;
+          tipo?: string;
+          valorInicial?: number | null;
+        };
+        usuario?: {
+          peso?: number;
+          percentual_gordura?: number;
+        };
+        percentComplete?: number;
+        valorAtual?: number;
+        message?: string;
+      }>("/metas", { auth: true }),
+    ultimoTreino: () =>
+      request<{
+        dataDoTreino?: string;
+        nomeDoTreino?: string;
+        nomeDaRotina?: string | null;
+        proximosTreinos?: string[];
+        message?: string;
+      }>("/ultimo_treino", { auth: true }),
   },
 };

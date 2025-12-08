@@ -2,10 +2,11 @@ import { FaUser } from "react-icons/fa";
 import { IoLogOut } from "react-icons/io5";
 import { BiNotepad } from "react-icons/bi";        
 import { FaChartLine } from "react-icons/fa";       
-import { FaRegClipboard } from "react-icons/fa";     
-import { FaCalendarAlt } from "react-icons/fa";     
+import { FaRegClipboard } from "react-icons/fa";    
+import { GiWeightLiftingUp } from "react-icons/gi";
 import { FaHome } from "react-icons/fa";
 import { LuDumbbell } from "react-icons/lu";
+import { FaTrophy } from "react-icons/fa";
 
 import { useLocation } from "react-router-dom";
 
@@ -30,40 +31,46 @@ export default function TopBar({ user, onLogout }: TopBarProps) {
 
       <nav className="flex gap-6 text-xl">
         
-        <a href="/home">
+        <a href="/home" title="Home Page">
           <FaHome 
             className={`h-7 w-7 ${isActive("/home") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/meus-treinos">
+        <a href="/meus-treinos" title="Meus Treinos">
           <BiNotepad 
             className={`h-7 w-7 ${isActive("/meus-treinos") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/evolucao">
+        <a href="/evolucao" title="Evolução">
           <FaChartLine 
             className={`h-7 w-7 ${isActive("/evolucao") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/explorar-rotinas">
+        <a href="/treinar" title="Cadastrar treinos">
+          <GiWeightLiftingUp 
+            className={`h-7 w-7 ${isActive("/treinar") ? activeIcon : inactiveIcon}`}
+          />
+        </a>
+
+        <a href="/explorar-rotinas" title="Explorar Rotinas">
           <FaRegClipboard 
             className={`h-7 w-7 ${isActive("/explorar-rotinas") ? activeIcon : inactiveIcon}`}
           />
         </a>
 
-        <a href="/calendario">
-          <FaCalendarAlt 
-            className={`h-7 w-7 ${isActive("/calendario") ? activeIcon : inactiveIcon}`}
-          />
-        </a>
-
-        <a href="/inserir-exercicio">
+        <a href="/inserir-exercicio" title="Inserir Exercício">
           <LuDumbbell 
             className={`h-7 w-7 ${isActive("/inserir-exercicio") ? activeIcon : inactiveIcon}`}
           />  
+        </a>
+
+        <a href = "/ranking" title="Ranking e Metas">
+          <FaTrophy 
+            className={`h-7 w-7 ${isActive("/ranking") ? activeIcon : inactiveIcon}`}
+          />
         </a>
       </nav>
 
