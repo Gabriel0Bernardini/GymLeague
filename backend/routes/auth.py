@@ -30,8 +30,8 @@ def generate_token(user_row):
         "altura": user_row.get("altura"),
         "percentual_gordura": user_row.get("percentual_gordura"),
         "idade": idade,
-        "exp": datetime.utcnow() + timedelta(hours=8),
-        "iat": datetime.utcnow(),
+        "exp": datetime.now(datetime.timezone.utc) + timedelta(hours=8),
+        "iat": datetime.now(datetime.timezone.utc),
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
