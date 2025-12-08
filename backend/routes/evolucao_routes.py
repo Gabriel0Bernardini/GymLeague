@@ -95,40 +95,21 @@ def get_treinoCompletoData():
                     inner.close()
                 except Exception:
                     pass
-
-        # fechar cursor/conn e retornar
-        cursor.close()
-        conn.close()
+                
         return jsonify(resposta), 200
 
     except mysql.connector.Error as db_err:
         print(msgDBERROR, db_err)
         # tentar fechar recursos sem lançar
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
         print(msgSERVERERROR, err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @evolucao_bp.get("/pesoCorporal")
@@ -156,31 +137,15 @@ def get_evolucaoPesoCorporal():
 
     except mysql.connector.Error as db_err:
         print(msgDBERROR, db_err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
         print(msgSERVERERROR, err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 @evolucao_bp.get("/percentualGordura")
@@ -217,32 +182,16 @@ def get_evolucaoPercentualGordura():
 
     except mysql.connector.Error as db_err:
         print(msgDBERROR, db_err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
         print(msgSERVERERROR, err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
+    
 
 @evolucao_bp.get("/exerciciosRealizados")
 @require_auth
@@ -281,31 +230,15 @@ def get_exerciciosRealizados():
 
     except mysql.connector.Error as db_err:
         print(msgDBERROR, db_err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
         print(msgSERVERERROR, err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 @evolucao_bp.get("/evolucaoExercicio/<nome_exercicio>")
@@ -362,28 +295,11 @@ def get_evolucaoExercicio(nome_exercicio):
 
     except mysql.connector.Error as db_err:
         print(msgDBERROR, db_err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgINTERNALERROR}), 500
 
     except Exception as err:
         print(msgSERVERERROR, err)
-        try:
-            if cursor:
-                cursor.close()
-        except Exception:
-            pass
-        try:
-            if conn:
-                conn.close()
-        except Exception:
-            pass
         return jsonify({"message": msgSERVERERR_2}), 500
+    finally:
+        cursor.close()
+        conn.close()
