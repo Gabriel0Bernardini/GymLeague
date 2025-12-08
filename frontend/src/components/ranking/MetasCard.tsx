@@ -193,8 +193,6 @@ export default function MetasCard() {
               progresso = menor
                 ? Math.min((atualNum / objetivoNum) * 100, 100)
                 : Math.min((objetivoNum / atualNum) * 100, 100);
-            } else {
-              progresso = 0;
             }
             return (
               <li key={idx} className="p-3 bg-gray-50 border rounded-lg">

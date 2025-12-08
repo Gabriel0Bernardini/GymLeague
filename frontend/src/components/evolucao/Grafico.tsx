@@ -37,14 +37,14 @@ export default function Graficos({
     if (tipoGrafico === "peso") {
       const mapeados = dadosPeso.map((d) => ({
         data: new Date(d.dataPesagem).toLocaleDateString("pt-BR"),
-        valor: parseFloat(String(d.peso)),
+        valor: Number.parseFloat(String(d.peso)),
         timestamp: new Date(d.dataPesagem).getTime(),
       }));
       return mapeados;
     } else if (tipoGrafico === "gordura") {
       const mapeados = dadosGordura.map((d) => ({
         data: new Date(d.dataPesagem).toLocaleDateString("pt-BR"),
-        valor: parseFloat(String(d.percentual_gordura)),
+        valor: Number.parseFloat(String(d.percentual_gordura)),
         timestamp: new Date(d.dataPesagem).getTime(),
       }));
       return mapeados;
