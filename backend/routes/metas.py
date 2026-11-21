@@ -27,8 +27,16 @@ def listar_metas():
         import traceback; traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
     
 @metas_bp.post("/criar")
 def criar_meta():
@@ -128,8 +136,16 @@ def criar_meta():
         import traceback; traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 @metas_bp.put("/editar")
 def editar_meta():
@@ -170,8 +186,16 @@ def editar_meta():
         import traceback; traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 @metas_bp.delete("/deletar")
 def deletar_meta():

@@ -36,5 +36,13 @@ def listar_exercicios():
 
         return jsonify(list(exercicios.values()))
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass

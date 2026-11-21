@@ -53,8 +53,16 @@ def editar_peso():
         traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 
 @editar_bp.post("/percentual_gordura")
@@ -112,8 +120,16 @@ def editar_percentual_gordura():
         traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 @editar_bp.post("/altura")
 def editar_altura():
@@ -142,5 +158,13 @@ def editar_altura():
         traceback.print_exc()
         return jsonify({"erro": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
