@@ -19,5 +19,13 @@ def listar_por_grupo(grupo):
         musculos = [row[0] for row in cursor.fetchall()]
         return jsonify(musculos)
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass

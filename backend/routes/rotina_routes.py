@@ -15,14 +15,21 @@ def listar_rotinas():
     email = g.user["email"]
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
-    cur.execute("""
-        SELECT nome, publico
-        FROM Rotina
-        WHERE fEmail_usuarioCriador = %s
-    """, (email,))
-    rotinas = cur.fetchall()
-    cur.close()
-    conn.close()
+    try:
+        cur.execute("""
+            SELECT nome, publico
+            FROM Rotina
+            WHERE fEmail_usuarioCriador = %s
+        """, (email,))
+        rotinas = cur.fetchall()
+    except Exception as e:
+        print("ERRO NO /rotinas GET:", str(e))
+        import traceback
+        traceback.print_exc()
+        return jsonify({"erro": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
 
     resultados = []
     for i, r in enumerate(rotinas):
@@ -202,6 +209,8 @@ def criar_rotina():
                     ))
 
         conn.commit()
+        
+        return jsonify({"message": "Rotina criada"}), 201
 
     except ValueError as ve:
         conn.rollback()
@@ -218,7 +227,6 @@ def criar_rotina():
         cur.close()
         conn.close()
 
-    return jsonify({"message": "Rotina criada"}), 201
 
 
 
@@ -395,6 +403,7 @@ def excluir_rotina(nome_rotina):
         """, (nome_rotina, email))
 
         conn.commit()
+        return jsonify({"message": "Rotina removida"}), 200
 
     except Exception as e:
         print(fichas)
@@ -404,7 +413,6 @@ def excluir_rotina(nome_rotina):
         cur.close()
         conn.close()
 
-    return jsonify({"message": "Rotina removida"}), 200
 
 
 #EDICAO de rotina
@@ -591,6 +599,7 @@ def editar_rotina(nome_rotina):
                     ))
 
         conn.commit()
+        return jsonify({"message": "Rotina atualizada"}), 200
 
     except Exception as e:
         conn.rollback()
@@ -600,4 +609,3 @@ def editar_rotina(nome_rotina):
         cur.close()
         conn.close()
 
-    return jsonify({"message": "Rotina atualizada"}), 200

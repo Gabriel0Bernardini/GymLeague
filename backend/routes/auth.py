@@ -103,7 +103,7 @@ def register():
         conn.close()
 
     token = generate_token(user)
-    return jsonify({"token": token, "user": {"email": email, "pNome": pNome}}), 201
+    return jsonify({"token": token, "user": {"email": user["email"], "pNome": user["pNome"]}}), 201
 
 @auth_bp.get("/me")
 def me():

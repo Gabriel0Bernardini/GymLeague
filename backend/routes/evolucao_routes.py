@@ -108,8 +108,16 @@ def get_treinoCompletoData():
         return jsonify({"message": msgINTERNALERROR}), 500
     
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 
 @evolucao_bp.get("/pesoCorporal")
@@ -143,8 +151,16 @@ def get_evolucaoPesoCorporal():
         print(msgSERVERERROR, err)
         return jsonify({"message": msgINTERNALERROR}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 
 
@@ -188,8 +204,16 @@ def get_evolucaoPercentualGordura():
         print(msgSERVERERROR, err)
         return jsonify({"message": msgINTERNALERROR}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
     
 
@@ -236,8 +260,16 @@ def get_exerciciosRealizados():
         print(msgSERVERERROR, err)
         return jsonify({"message": msgINTERNALERROR}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 
 
@@ -301,5 +333,13 @@ def get_evolucaoExercicio(nome_exercicio):
         print(msgSERVERERROR, err)
         return jsonify({"message": msgSERVERERR_2}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass

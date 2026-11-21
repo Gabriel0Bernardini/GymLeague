@@ -40,8 +40,16 @@ def buscar_musculos():
             "musculos": musculos
         })
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
     
 @inserirExercicios_bp.post("/")
 def insert_exercicio():
@@ -105,5 +113,13 @@ def insert_exercicio():
         return jsonify({"message": "Erro no servidor"}), 500
 
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass

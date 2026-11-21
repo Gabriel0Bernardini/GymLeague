@@ -71,8 +71,16 @@ def buscarRotinas_publicas():
         
         return jsonify({"rotinas": rotinasFinais})
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 @explorarRotinas_bp.post("/copiar")
 def copiarRotina_publica():
@@ -117,5 +125,13 @@ def copiarRotina_publica():
         conn.rollback()
         return jsonify({"erro": "Erro ao copiar rotina"}), 500
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor:
+                cursor.close()
+        except Exception:
+            pass
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
